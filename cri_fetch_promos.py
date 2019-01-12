@@ -37,7 +37,7 @@ async def cri_fetch_promos(database, session_id, client, channel, config):
     l = logging.getLogger('discord.cri_fetch_promos.status')
     l.info('starting ...')
 
-    urlapi = 'https://cri.epita.fr/api/users/?format=json&limit=100&offset=2800'
+    urlapi = 'https://cri.epita.fr/api/users/?format=json&limit=100&offset=0'
 
     while urlapi:
         l.info('getting ' + urlapi)

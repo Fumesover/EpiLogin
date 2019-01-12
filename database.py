@@ -8,7 +8,11 @@ class database:
         self.conn = None
 
     async def init(self, config):
-        self.conn = await asyncpg.connect(config['database']['url']) # 'postgresql://postgres@localhost/postgres'
+        try:
+            self.conn = await asyncpg.connect(config['database']['url']) # 'postgresql://postgres@localhost/postgres'
+        except:
+            await asyncio.sleep(30) # Wait for database
+            self.conn = await asyncpg.connect(config['database']['url']) # 'postgresql://postgres@localhost/postgres'
 
         await self.conn.execute('''
             CREATE TABLE IF NOT EXISTS users(
