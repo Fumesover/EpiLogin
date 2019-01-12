@@ -1,0 +1,22 @@
+version: '3'
+
+services:
+  epilogin-db:
+    restart: always
+    image: postgres
+    volumes:
+      - /private/postgresql/epilogin:/var/lib/postgresql
+    networks:
+      epilogin_network:
+  epilogin-bot:
+    restart: always
+    build: .
+    volumes:
+      - ./config.yml:/code/config.yml
+    depends_on:
+      - epilogin-db
+    networks:
+      epilogin_network:
+
+networks:
+  epilogin_network:
