@@ -5,7 +5,7 @@ services:
     restart: always
     image: postgres
     volumes:
-      - /private/postgresql/epilogin:/var/lib/postgresql
+      - /private/postgresql/epilogin:/var/lib/postgresql/data
     networks:
       epilogin_network:
   epilogin-bot:
