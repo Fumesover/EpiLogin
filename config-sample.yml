@@ -1,0 +1,24 @@
+bot:
+    tokken: xxxxxx.xxxxxxxx.xxxxxxxxxxx
+    welcome:
+        - Salut a toi !
+        - >
+            Tu es inconnu de nos services,
+            je t'invite donc a envoyer un email a l'adresse
+            epilogin@epifun.com avec **ta boite epita** et pour **objet**
+            le texte suivant (**avec** les crochets) :
+database:
+    url: postgres://postgres@epilogin-db/postgres
+email:
+    url:        mail.example.com
+    usetls:     True
+    login:      epilogin@example.com
+    password:   password
+    inbox:      INBOX
+    trash:      INBOX.Trash
+servers:
+    "server_id_here":
+        logs:     "channel_id_here"
+        admin:    "channel_id_here"
+        rank:
+            - "role_id_here"

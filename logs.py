@@ -64,3 +64,7 @@ async def database_del_groups(login, groups):
 async def database_add_groups(login, groups):
     l = get_logger('database.add_groups')
     l.info(login + ' adding groups ' + str(groups))
+
+async def new_confirmed_user(client, member, login, config):
+    channel = get_channel(client, config['servers'][member.server.id]['logs'])
+    await client.send_message(channel, member.mention + ' is ' + login)

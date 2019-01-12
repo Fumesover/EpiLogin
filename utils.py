@@ -86,3 +86,4 @@ async def new_confirmed_user(client, id, login, config, bdd):
             ranks += ids_of_roles(client, server, await bdd.get_groups(login))
 
             await give_roles(client, config, member, ranks)
+            await logs.new_confirmed_user(client, member, login, config)
