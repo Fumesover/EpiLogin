@@ -22,6 +22,7 @@ EpiLogin: A bot to login with @epita.fr emails
 - help                      <= show this message
 - new *users                <= resend message for hash or add roles
 - getlogin *users           <= get login of users
+- picture *users            <= get face of users
 - gethash *users            <= get hash of users
 - getdiscord *logins        <= get discord account of logins
 - delete *users             <= remove users from database
@@ -29,6 +30,7 @@ EpiLogin: A bot to login with @epita.fr emails
 - getgroups *logins         <= get groups from database
 - addgroups login *groups   <= add groups to a login
 - delgroups login *groups   <= del groups to a login
+- certify user login        <= certify manualy a user
         ```"""
         await Bot.send_message(message.channel, msg)
     elif msg[0] == 'new': # <= request hash or update roles
@@ -39,6 +41,11 @@ EpiLogin: A bot to login with @epita.fr emails
             login = await database.get_login(u.id)
             login = login if login else '**None**'
             await Bot.send_message(message.channel, u.mention + ' login is : ' + login)
+    elif msg[0] == 'picture':
+        for u in message.mentions:
+            login = await database.get_login(u.id)
+            login = login if login else '**None**'
+            await Bot.send_message(message.channel, u.mention + ' : https://photos.cri.epita.fr/thumb/' + login)
     elif msg[0] == 'gethash':
         for u in message.mentions:
             hash = await database.get_hash(u.id)
@@ -82,3 +89,13 @@ EpiLogin: A bot to login with @epita.fr emails
         await database.close()
 
         config['email']['status'] = False
+    elif msg[0] == 'certify':
+        l = logging.getLogger('discord.admin.certify')
+        l.info(message.author.id + ' certify that ' + msg[1] + ' is ' + msg[2])
+
+        await utils.new_user(Bot, message.mentions[0], database, config)
+        hash = await database.get_hash(message.mentions[0].id)
+
+        await database.confirm_email(hash, msg[2])
+
+        await utils.new_confirmed_user(Bot, message.mentions[0].id, msg[2], config, database)
