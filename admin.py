@@ -2,12 +2,14 @@ import discord
 import logging
 import argparse
 import yaml
-import database
 import logging
 import asyncio
 
 import utils
 import cri_fetch_promos
+import database
+from database import BanType
+import logs
 
 async def new_message(Bot, database, message, config):
     msg = message.content.split(' ')
@@ -31,7 +33,10 @@ EpiLogin: A bot to login with @epita.fr emails
 - addgroups login *groups   <= add groups to a login
 - delgroups login *groups   <= del groups to a login
 - certify user login        <= certify manualy a user
-        ```"""
+- ban [user|login|group] *data <= ban something from server
+- unban [user|login|group] *data <= unban something from server
+- isbanned [user|login|group] *data <= check if something is banned
+```"""
         await Bot.send_message(message.channel, msg)
     elif msg[0] == 'new': # <= request hash or update roles
         for u in message.mentions:
@@ -99,3 +104,60 @@ EpiLogin: A bot to login with @epita.fr emails
         await database.confirm_email(hash, msg[2])
 
         await utils.new_confirmed_user(Bot, message.mentions[0].id, msg[2], config, database)
+    elif msg[0] == 'ban':
+        server = message.server
+
+        if msg[1] == 'user':
+            for u in message.mentions:
+                if not await database.check_ban(server.id, BanType.user, [u.id]):
+                    await database.ban(server.id, BanType.user, u.id)
+                    await logs.ban(Bot, config, server, BanType.user, [u.id])
+        if msg[1] == 'login':
+            for login in msg[2:]:
+                if not await database.check_ban(server.id, BanType.login, [login]):
+                    await database.ban(server.id, BanType.login, login)
+                    await logs.ban(Bot, config, server, BanType.login, [login])
+        if msg[1] == 'group':
+            for group in msg[2:]:
+                if not await database.check_ban(server.id, BanType.group, [group]):
+                    await database.ban(server.id, BanType.group, group)
+                    await logs.ban(Bot, config, server, BanType.group, [group])
+    elif msg[0] == 'unban':
+        server = message.server
+
+        if msg[1] == 'user':
+            for u in message.mentions:
+                if await database.check_ban(server.id, BanType.user, [u.id]):
+                    await database.unban(server.id, BanType.user, u.id)
+                    await logs.unban(Bot, config, server, BanType.user, [u.id])
+        if msg[1] == 'login':
+            for login in msg[2:]:
+                if await database.check_ban(server.id, BanType.login, [login]):
+                    await database.unban(server.id, BanType.login, login)
+                    await logs.unban(Bot, config, server, BanType.login, [login])
+        if msg[1] == 'group':
+            for group in msg[2:]:
+                if await database.check_ban(server.id, BanType.group, [group]):
+                    await database.unban(server.id, BanType.group, group)
+                    await logs.unban(Bot, config, server, BanType.group, [group])
+    elif msg[0] == 'isbanned':
+        server = message.server
+
+        if msg[1] == 'user':
+            for u in message.mentions:
+                if await database.check_ban(server.id, BanType.user, [u.id]):
+                    await Bot.send_message(message.channel, u.mention + ' is banned')
+                else:
+                    await Bot.send_message(message.channel, u.mention + ' isn\'t banned')
+        if msg[1] == 'login':
+            for login in msg[2:]:
+                if await database.check_ban(server.id, BanType.login, [login]):
+                    await Bot.send_message(message.channel, login + ' is banned')
+                else:
+                    await Bot.send_message(message.channel, login + ' isn\'t banned')
+        if msg[1] == 'group':
+            for group in msg[2:]:
+                if await database.check_ban(server.id, BanType.group, [group]):
+                    await Bot.send_message(message.channel, group + ' is banned')
+                else:
+                    await Bot.send_message(message.channel, group + ' isn\'t banned')

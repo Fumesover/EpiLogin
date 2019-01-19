@@ -1,7 +1,14 @@
 import asyncpg
 import asyncio
 
+from enum import Enum, auto
+
 import logs
+
+class BanType(Enum):
+    group = auto()
+    user  = auto()
+    login = auto()
 
 class database:
     def __init__(self):
@@ -28,6 +35,15 @@ class database:
                 id SERIAL PRIMARY KEY,
                 login text,
                 groupe text
+            )
+        ''')
+
+#                 id BIGINT PRIMARY KEY UNIQUE,
+        await self.conn.execute('''
+            CREATE TABLE IF NOT EXISTS banned(
+                server BIGINT,
+                type SERIAL,
+                value TEXT
             )
         ''')
 
@@ -109,3 +125,25 @@ class database:
             ''', login, group)
         if groups:
             await logs.database_del_groups(login, groups)
+
+    async def ban(self, server_id, type, to_ban):
+        await self.conn.execute('''
+            INSERT INTO banned(server, type, value) values($1, $2, $3)
+        ''', int(server_id), type.value, to_ban)
+
+    async def unban(self, server_id, type, to_unban):
+        await self.conn.execute('''
+            DELETE FROM banned WHERE server = $1 AND type = $2 AND value = $3
+        ''', int(server_id), type.value, to_unban)
+
+    async def check_ban(self, server_id, type, elements):
+        for e in elements:
+            data = await self.conn.fetchrow('''
+                SELECT * FROM banned
+                WHERE server = $1 AND type = $2 AND value = $3
+            ''', int(server_id), type.value, e)
+
+            if data:
+                return True
+
+        return False

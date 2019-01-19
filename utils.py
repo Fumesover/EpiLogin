@@ -72,9 +72,12 @@ async def on_member_join(client, member, bdd, config):
     if login == None:
         await new_user(client, member, bdd, config)
     else:
-        ranks = [] + config['servers'][member.server.id]['rank']
+        ranks  = [] + config['servers'][member.server.id]['rank']
         groups = await bdd.get_groups(login)
         ranks += ids_of_roles(client, member.server, groups)
+
+        if await check_ban(database, member.server.id, member.id, login, groups):
+            ranks = [] + config['servers'][member.server.id]['banned']
 
         await give_roles(client, config, member, ranks)
 
@@ -82,8 +85,24 @@ async def new_confirmed_user(client, id, login, config, bdd):
     for server in client.servers:
         member = server.get_member(str(id))
         if member:
-            ranks = [] + config['servers'][member.server.id]['rank']
-            ranks += ids_of_roles(client, server, await bdd.get_groups(login))
+            ranks  = [] + config['servers'][member.server.id]['rank']
+            groups = await bdd.get_groups(login)
+            ranks += ids_of_roles(client, server, groups)
+
+            if await check_ban(database, server.id, str(id), login, groups):
+                ranks = [] + config['servers'][member.server.id]['banned']
 
             await give_roles(client, config, member, ranks)
             await logs.new_confirmed_user(client, member, login, config)
+
+async def check_ban(database, server_id, user_id, login, groups):
+    if await database.check_ban(server.id, BanType.user, [user_id]):
+        return True
+
+    if await database.check_ban(server.id, BanType.login, [login]):
+        return True
+
+    if await database.check_ban(server.id, BanType.group, groups):
+        return True
+
+    return False

@@ -1,5 +1,6 @@
 import discord
 import logging
+from database import BanType
 
 def get_logger(name):
     return logging.getLogger(name)
@@ -68,3 +69,23 @@ async def database_add_groups(login, groups):
 async def new_confirmed_user(client, member, login, config):
     channel = get_channel(client, config['servers'][member.server.id]['logs'])
     await client.send_message(channel, member.mention + ' is ' + login)
+
+async def ban(client, config, server, type, data):
+    if type == BanType.user:
+        data = ['<@' + d + '>' for d in data]
+
+    l = get_logger('discord.admin.ban')
+    l.info('banning ' + ' '.join(data) + ' from ' + server.id)
+
+    channel = get_channel(client, config['servers'][server.id]['logs'])
+    await client.send_message(channel, 'banning ' + ' '.join(data))
+
+async def unban(client, config, server, type, data):
+    if type == BanType.user:
+        data = ['<@' + d + '>' for d in data]
+
+    l = get_logger('discord.admin.unban')
+    l.info('unbanning ' + ' '.join(data) + ' from ' + server.id)
+
+    channel = get_channel(client, config['servers'][server.id]['logs'])
+    await client.send_message(channel, 'unbanning ' + ' '.join(data))
