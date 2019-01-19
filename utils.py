@@ -76,7 +76,7 @@ async def on_member_join(client, member, bdd, config):
         groups = await bdd.get_groups(login)
         ranks += ids_of_roles(client, member.server, groups)
 
-        if await check_ban(database, member.server.id, member.id, login, groups):
+        if await check_ban(bdd, member.server.id, member.id, login, groups):
             ranks = [] + config['servers'][member.server.id]['banned']
 
         await give_roles(client, config, member, ranks)
@@ -89,7 +89,7 @@ async def new_confirmed_user(client, id, login, config, bdd):
             groups = await bdd.get_groups(login)
             ranks += ids_of_roles(client, server, groups)
 
-            if await check_ban(database, server.id, str(id), login, groups):
+            if await check_ban(bdd, server.id, str(id), login, groups):
                 ranks = [] + config['servers'][member.server.id]['banned']
 
             await give_roles(client, config, member, ranks)
