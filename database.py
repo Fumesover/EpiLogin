@@ -147,3 +147,10 @@ class database:
                 return True
 
         return False
+
+    async def get_bans(self, server_id):
+        data = await self.conn.fetch('''
+            SELECT type,value FROM banned WHERE server = $1
+        ''', int(server_id))
+
+        return data

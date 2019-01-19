@@ -36,6 +36,7 @@ EpiLogin: A bot to login with @epita.fr emails
 - ban [user|login|group] *data <= ban something from server
 - unban [user|login|group] *data <= unban something from server
 - isbanned [user|login|group] *data <= check if something is banned
+- getbans                   <= get list of banned users
 ```"""
         await Bot.send_message(message.channel, msg)
     elif msg[0] == 'new': # <= request hash or update roles
@@ -161,3 +162,14 @@ EpiLogin: A bot to login with @epita.fr emails
                     await Bot.send_message(message.channel, group + ' is banned')
                 else:
                     await Bot.send_message(message.channel, group + ' isn\'t banned')
+    elif msg[0] == 'getbans':
+        print(1)
+        data = await database.get_bans(message.server.id)
+        for d in data:
+            type = BanType(d['type'])
+            if type == BanType.login:
+                await Bot.send_message(message.channel, 'login : ' + d['value'] + ' is banned')
+            if type == BanType.user:
+                await Bot.send_message(message.channel, 'user : <@' + d['value'] + '> is banned')
+            if type == BanType.group:
+                await Bot.send_message(message.channel, 'group : ' + d['value'] + ' is banned')
