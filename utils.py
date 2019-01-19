@@ -96,13 +96,13 @@ async def new_confirmed_user(client, id, login, config, bdd):
             await logs.new_confirmed_user(client, member, login, config)
 
 async def check_ban(database, server_id, user_id, login, groups):
-    if await database.check_ban(server.id, BanType.user, [user_id]):
+    if await database.check_ban(server_id, BanType.user, [user_id]):
         return True
 
-    if await database.check_ban(server.id, BanType.login, [login]):
+    if await database.check_ban(server_id, BanType.login, [login]):
         return True
 
-    if await database.check_ban(server.id, BanType.group, groups):
+    if await database.check_ban(server_id, BanType.group, groups):
         return True
 
     return False
