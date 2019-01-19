@@ -5,6 +5,7 @@ import string
 
 import logs
 import database
+from database import BanType
 
 def hash_generator():
     return ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(30))
