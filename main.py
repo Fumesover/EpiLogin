@@ -29,8 +29,12 @@ async def on_message(message):
     if message.server == None:
         return # No MP
 
+    print(message.channel.id, config['servers'][message.server.id]['request'])
+
     if message.channel.id == config['servers'][message.server.id]['admin']:
         await admin.new_message(Bot, bdd, message, config)
+    if message.channel.id == config['servers'][message.server.id]['request']:
+        await utils.on_member_join(Bot, message.author, bdd, config)
 
 @Bot.event
 async def on_member_join(member):
@@ -52,9 +56,9 @@ if __name__ == "__main__":
     # Add mail process
     config['email']['status'] = True
     mail_loop = asyncio.new_event_loop()
-#    Bot.loop.create_task(
-#        emails.mailthread(Bot, config, bdd)
-    #)
+    Bot.loop.create_task(
+        emails.mailthread(Bot, config, bdd)
+    )
 
     Bot.run(config['bot']['tokken'])
 
