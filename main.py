@@ -29,8 +29,6 @@ async def on_message(message):
     if message.server == None:
         return # No MP
 
-    print(message.channel.id, config['servers'][message.server.id]['request'])
-
     if message.channel.id == config['servers'][message.server.id]['admin']:
         await admin.new_message(Bot, bdd, message, config)
     if message.channel.id == config['servers'][message.server.id]['request']:
