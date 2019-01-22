@@ -24,3 +24,6 @@ python3.6 main.py
 
 Backup:
 > docker-compose exec epilogin-db pg_dump postgres -U postgres  > backup.sql
+
+Restore:
+> cat backup.sql | docker exec -i $(docker-compose ps -q epilogin-db) psql -U postgres

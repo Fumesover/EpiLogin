@@ -38,7 +38,6 @@ class database:
             )
         ''')
 
-#                 id BIGINT PRIMARY KEY UNIQUE,
         await self.conn.execute('''
             CREATE TABLE IF NOT EXISTS banned(
                 server BIGINT,
