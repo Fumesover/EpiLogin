@@ -52,9 +52,9 @@ if __name__ == "__main__":
     # Add mail process
     config['email']['status'] = True
     mail_loop = asyncio.new_event_loop()
-    Bot.loop.create_task(
-        emails.mailthread(Bot, config, bdd)
-    )
+#    Bot.loop.create_task(
+#        emails.mailthread(Bot, config, bdd)
+    #)
 
     Bot.run(config['bot']['tokken'])
 

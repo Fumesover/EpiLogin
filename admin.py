@@ -175,10 +175,21 @@ EpiLogin: A bot to login with @epita.fr emails
                 await Bot.send_message(message.channel, 'group : ' + d['value'] + ' is banned')
     elif msg[0] == 'find':
         groups = msg[1:]
+        to_ping = []
 
         for member in message.server.members:
             login = await database.get_login(member.id)
             if login:
                 ugroups = await database.get_groups(login)
                 if all([g in ugroups for g in groups]):
-                    await Bot.send_message(message.channel, member.mention + ' found')
+                    to_ping.append(member.mention)
+
+        msg = ""
+        for mention in to_ping:
+            if len(msg + mention) > 2000:
+                await Bot.send_message(message.channel, msg)
+                msg = ''
+            else:
+                msg += mention
+        if msg:
+            await Bot.send_message(message.channel, msg)
