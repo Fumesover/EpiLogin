@@ -43,17 +43,23 @@ async def give_roles(client, config, member, roles, id=True):
         await logs.new_roles(client, config, member, new_roles)
 
 async def send_hello(client, member, hash, config):
-    await client.start_private_message(member)
-    await client.send_message(member, '\n'.join(config['bot']['welcome']))
-    await client.send_message(member, "[" + hash +"]")
+    try:
+        await client.start_private_message(member)
+        await client.send_message(member, '\n'.join(config['bot']['welcome']))
+        await client.send_message(member, "[" + hash +"]")
+
+        return True
+    except Exception:
+        await logs.reject_mp(client, member, config)
+        return False
 
 async def check_not_confirmed(client, member, bdd, config):
     hash = await bdd.get_hash(member.id)
     if not hash:
         return False
 
-    await send_hello(client, member, hash, config)
-    await logs.new_unconfirmed(client, member, hash, config)
+    if await send_hello(client, member, hash, config):
+        await logs.new_unconfirmed(client, member, hash, config)
 
     return True
 
@@ -62,10 +68,9 @@ async def new_user(client, member, bdd, config):
         return
 
     hash = hash_generator()
-    await send_hello(client, member, hash, config)
-
-    await bdd.add_user(member.id, hash)
-    await logs.new_user(client, member, hash, config)
+    if await send_hello(client, member, hash, config):
+        await bdd.add_user(member.id, hash)
+        await logs.new_user(client, member, hash, config)
 
 async def on_member_join(client, member, bdd, config):
     login = await bdd.get_login(member.id)

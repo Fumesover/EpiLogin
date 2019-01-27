@@ -70,6 +70,13 @@ async def new_confirmed_user(client, member, login, config):
     channel = get_channel(client, config['servers'][member.server.id]['logs'])
     await client.send_message(channel, member.mention + ' is ' + login)
 
+async def reject_mp(client, member, config):
+    l = get_logger('discord.new_user.reject_mp')
+    l.info(member.id + ' reject epilogin\'s mp')
+
+    channel = get_channel(client, config['servers'][member.server.id]['logs'])
+    await client.send_message(channel, member.mention + ' does not accept mp')
+
 async def ban(client, config, server, type, data):
     if type == BanType.user:
         data = ['<@' + d + '>' for d in data]
