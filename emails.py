@@ -15,8 +15,7 @@ regexhash  = '^\[([A-Z0-9]*)]'
 
 async def mailthread(client, config, database):
     try:
-        client.wait_until_ready()
-        await asyncio.sleep(15)
+        await client.wait_until_ready()
 
         imap = IMAP4(config['email']['url'])
         if config['email']['usetls']:
