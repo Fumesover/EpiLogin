@@ -11,6 +11,7 @@ import admin
 import database
 import logs
 import emails
+import hooks
 
 logging.basicConfig(level=logging.INFO)
 
@@ -52,13 +53,17 @@ if __name__ == "__main__":
     asyncio.get_event_loop().run_until_complete(bdd.init(config))
 
     # Add mail process
-    config['email']['status'] = True
-    mail_loop = asyncio.new_event_loop()
-    Bot.loop.create_task(
-        emails.mailthread(Bot, config, bdd)
-    )
+    if config['email']['enable']:
+        config['email']['status'] = True
+        mail_loop = asyncio.new_event_loop()
+        Bot.loop.create_task(
+            emails.mailthread(Bot, config, bdd)
+        )
+
+    # Add webhooks process
+    if config['website']['enable']:
+        Bot.loop.create_task(
+            hooks.hooksthread(Bot, config, bdd)
+        )
 
     Bot.run(config['bot']['tokken'])
-
-    # new_loop = asyncio.new_event_loop()
-    # new_loop.run_until_complete(bdd.close())

@@ -16,6 +16,10 @@ email:
     password:   password
     inbox:      INBOX
     trash:      INBOX.Trash
+website:
+    url:        http://127.0.0.1:8000
+    username:   admin
+    password:   pass
 servers:
     "server_id_here":
         logs:     "channel_id_here"

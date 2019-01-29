@@ -26,7 +26,7 @@ async def new_unconfirmed(client, member, hash, config):
     l.info(member.id + ' arrived on ' + member.server.id + ' hash is [' + hash + ']')
 
     channel = get_channel(client, config['servers'][member.server.id]['logs'])
-    await client.send_message(channel, member.mention + ' never confirmed and recived a new mp')
+    await client.send_message(channel, member.mention + ' never confirmed and received a new pm')
 
 async def new_roles(client, config, member, list):
     roles = ' '.join([r.mention for r in list])

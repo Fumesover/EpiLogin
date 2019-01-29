@@ -70,6 +70,11 @@ class database:
 
         return [ g['groupe'] for g in data ]
 
+    async def get_all_groups(self):
+        return await self.conn.fetch('''
+            SELECT * FROM groupes
+        ''')
+
     async def get_ids(self, login):
         data = await self.conn.fetch('''
             SELECT id FROM users WHERE login = $1
