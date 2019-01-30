@@ -19,7 +19,7 @@ async def new_user(client, member, hash, config):
     l.info(member.id + ' arrived on ' + member.server.id + ' hash is [' + hash + ']')
 
     channel = get_channel(client, config['servers'][member.server.id]['logs'])
-    await client.send_message(channel, member.mention + ' is unknown and recived a mp')
+    await client.send_message(channel, member.mention + ' is unknown and received a pm')
 
 async def new_unconfirmed(client, member, hash, config):
     l = get_logger('discord.epilogin.new_unconfirmed')
