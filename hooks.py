@@ -90,12 +90,25 @@ async def checkupdates(client, config, database):
             await logs.unban(client, config, server, bantype, [unban['value']])
         confirmed.append(unban['pk'])
 
+    for addgroup in data['addgroup']:
+        groups = await database.get_groups(addgroup['login'])
+        if not addgroup['value'] in groups:
+            await database.add_groups(addgroup['login'], [addgroup['value']])
+        confirmed.append(addgroup['pk'])
+
+    for delgroup in data['delgroup']:
+        groups = await database.get_groups(delgroup['login'])
+        if delgroup['value'] in groups:
+            await database.del_groups(delgroup['login'], [delgroup['value']])
+        confirmed.append(delgroup['pk'])
+
     if confirmed:
         r = requests.delete(config['website']['url'] + '/servers/update', data=json.dumps({'pk':confirmed}), auth=get_auth(config))
 
 async def hooksthread(client, config, database, with_groups=False):
     await client.wait_until_ready()
 
+    await checkupdates(client, config, database)
     await global_update(client, config, database, with_groups=with_groups)
 
     while not client.is_closed:
@@ -104,4 +117,7 @@ async def hooksthread(client, config, database, with_groups=False):
         except:
             pass
 
-        await asyncio.sleep(60)
+        await asyncio.sleep(30)
+
+async def push(config, data):
+    r = requests.post(config['website']['url'] + '/servers/push', json=data, auth=get_auth(config))

@@ -6,6 +6,7 @@ import string
 import logs
 import database
 from database import BanType
+import hooks
 
 def hash_generator():
     return ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(30))
@@ -87,6 +88,15 @@ async def on_member_join(client, member, bdd, config):
 
         await give_roles(client, config, member, ranks)
 
+    await hooks.push(config, {
+        'joined': {'id':member.id, 'server':member.server.id, 'username': member.name}
+    })
+
+async def on_member_remove(Bot, member, bdd, config):
+    await hooks.push(config, {
+        'leaves': {'id':member.id, 'server':member.server.id}
+    })
+
 async def new_confirmed_user(client, id, login, config, bdd):
     for server in client.servers:
         member = server.get_member(str(id))
@@ -100,6 +110,10 @@ async def new_confirmed_user(client, id, login, config, bdd):
 
             await give_roles(client, config, member, ranks)
             await logs.new_confirmed_user(client, member, login, config)
+
+    await hooks.push(config, {
+        'certify': {'id':str(id), 'login':login}
+    })
 
 async def check_ban(database, server_id, user_id, login, groups):
     if await database.check_ban(server_id, BanType.user, [user_id]):

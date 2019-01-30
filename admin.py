@@ -10,6 +10,7 @@ import cri_fetch_promos
 import database
 from database import BanType
 import logs
+import hooks
 
 async def new_message(Bot, database, message, config):
     msg = message.content.split(' ')
@@ -70,6 +71,8 @@ EpiLogin: A bot to login with @epita.fr emails
         for u in message.mentions:
             await database.del_user(u.id)
             await Bot.send_message(message.channel, u.mention + ' deleted')
+            await hooks.push(config, {'certify': {'id':u.id, 'login':''}})
+
     elif msg[0] == 'fetchcri':
         l = logging.getLogger('discord.cri_fetch_promos')
         l.info(message.author.id + ' requested fetchcri')
@@ -84,11 +87,17 @@ EpiLogin: A bot to login with @epita.fr emails
         groups = msg[2:]
         await database.add_groups(login, groups)
         await Bot.send_message(message.channel, ' '.join(groups) + ' added to ' + login)
+        await hooks.push(config, {
+            'addgroup': [{'login': login, 'group': group} for group in groups]
+        })
     elif msg[0] == 'delgroups':
         login = msg[1]
         groups = msg[2:]
         await database.del_groups(login, groups)
         await Bot.send_message(message.channel, ' '.join(groups) + ' removed to ' + login)
+        await hooks.push(config, {
+            'delgroup': [{'login': login, 'group': group} for group in groups]
+        })
     elif msg[0] == 'logout':
         l = logging.getLogger('discord.admin.logout')
         l.info(message.author.id + ' requested shutdown')
@@ -114,16 +123,24 @@ EpiLogin: A bot to login with @epita.fr emails
                 if not await database.check_ban(server.id, BanType.user, [u.id]):
                     await database.ban(server.id, BanType.user, u.id)
                     await logs.ban(Bot, config, server, BanType.user, [u.id])
-        if msg[1] == 'login':
+        elif msg[1] == 'login':
             for login in msg[2:]:
                 if not await database.check_ban(server.id, BanType.login, [login]):
                     await database.ban(server.id, BanType.login, login)
                     await logs.ban(Bot, config, server, BanType.login, [login])
-        if msg[1] == 'group':
+        elif msg[1] == 'group':
             for group in msg[2:]:
                 if not await database.check_ban(server.id, BanType.group, [group]):
                     await database.ban(server.id, BanType.group, group)
                     await logs.ban(Bot, config, server, BanType.group, [group])
+        else:
+            return
+
+        data = msg[2:] if msg[1] != 'user' else [u.id for u in message.mentions]
+        await hooks.push(config, {
+            'bans': {'server': server.id, 'type': msg[1], 'banned': [d for d in data]}
+        })
+
     elif msg[0] == 'unban':
         server = message.server
 
@@ -132,16 +149,24 @@ EpiLogin: A bot to login with @epita.fr emails
                 if await database.check_ban(server.id, BanType.user, [u.id]):
                     await database.unban(server.id, BanType.user, u.id)
                     await logs.unban(Bot, config, server, BanType.user, [u.id])
-        if msg[1] == 'login':
+        elif msg[1] == 'login':
             for login in msg[2:]:
                 if await database.check_ban(server.id, BanType.login, [login]):
                     await database.unban(server.id, BanType.login, login)
                     await logs.unban(Bot, config, server, BanType.login, [login])
-        if msg[1] == 'group':
+        elif msg[1] == 'group':
             for group in msg[2:]:
                 if await database.check_ban(server.id, BanType.group, [group]):
                     await database.unban(server.id, BanType.group, group)
                     await logs.unban(Bot, config, server, BanType.group, [group])
+        else:
+            return
+
+        data = msg[2:] if msg[1] != 'user' else [u.id for u in message.mentions]
+        await hooks.push(config, {
+            'unbans': {'server': server.id, 'type': msg[1], 'unbanned': [d for d in data]}
+        })
+
     elif msg[0] == 'isbanned':
         server = message.server
 
@@ -193,3 +218,5 @@ EpiLogin: A bot to login with @epita.fr emails
                 msg += mention
         if msg:
             await Bot.send_message(message.channel, msg)
+    elif msg[0] == 'syncgroups':
+        await hooks.global_update(Bot, config, database, with_groups=True)

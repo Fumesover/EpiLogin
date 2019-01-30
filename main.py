@@ -39,6 +39,10 @@ async def on_message(message):
 async def on_member_join(member):
     await utils.on_member_join(Bot, member, bdd, config)
 
+@Bot.event
+async def on_member_remove(member):
+    await utils.on_member_remove(Bot, member, bdd, config)
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Discord bot for EPITA')
     parser.add_argument('-c', '--config', default='config.yml', help='config file, default is config.yml')
