@@ -13,6 +13,29 @@ from database import BanType
 def get_auth(config):
     return HTTPBasicAuth(config['website']['username'], config['website']['password'])
 
+async def syncgroups(client, config, database):
+    l = logs.get_logger('hooks.groups_update')
+
+    groups = await database.get_all_groups()
+
+    for i in range(1 + (len(groups) // 100)):
+        data = {
+            'servers': {},
+            'members': {},
+            'groups': [],
+        }
+
+        for e in groups[i * 100: (i + 1) * 100]:
+            data['groups'].append({
+                'login': e['login'],
+                'group': e['groupe']
+            })
+
+        r = requests.post(config['website']['url'] + '/servers/update', json=data, auth=get_auth(config))
+
+        l.info(str(i) + ' response : ' + str(r.status_code))
+
+
 async def global_update(client, config, database, with_groups=False):
     l = logs.get_logger('hooks.global_update')
     l.info('preparing payload ...')
@@ -54,12 +77,7 @@ async def global_update(client, config, database, with_groups=False):
     data['members'] = members
 
     if with_groups:
-        data['groups'] = []
-        for e in await database.get_all_groups():
-            data['groups'].append({
-                'login': e['login'],
-                'group': e['groupe']
-            })
+        await syncgroups(client, config, database)
 
     l.info('payload ready, sending ...')
 
