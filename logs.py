@@ -29,7 +29,7 @@ async def new_unconfirmed(client, member, hash, config):
     await client.send_message(channel, member.mention + ' never confirmed and received a new pm')
 
 async def new_roles(client, config, member, list):
-    roles = ' '.join([r.mention for r in list])
+    roles = ' '.join([r.name for r in list])
 
     l = get_logger('discord.epilogin.new_roles')
     l.info(member.id + ' just got on ' + member.server.id + ' ' + roles)
