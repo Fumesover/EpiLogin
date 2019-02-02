@@ -155,7 +155,7 @@ async def hooksthread(client, config, database, with_groups=False):
         except Exception as e:
             await logs.error(client, config, e)
 
-        await asyncio.sleep(5)
+        await asyncio.sleep(60)
 
 async def push(config, data):
     r = requests.post(config['website']['url'] + '/servers/push', json=data, auth=get_auth(config))
