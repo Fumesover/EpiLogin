@@ -76,9 +76,6 @@ async def global_update(client, config, database, with_groups=False):
 
     data['members'] = members
 
-    if with_groups:
-        await syncgroups(client, config, database)
-
     l.info('payload ready, sending ...')
 
     r = requests.post(config['website']['url'] + '/servers/update', json=data, auth=get_auth(config))
@@ -87,6 +84,10 @@ async def global_update(client, config, database, with_groups=False):
         print(r.status_code)
 
     l.info('response : ' + str(r.status_code))
+
+    if with_groups:
+        await syncgroups(client, config, database)
+
 
 async def checkupdates(client, config, database):
     l = logs.get_logger('hooks.checkupdates')
@@ -109,8 +110,6 @@ async def checkupdates(client, config, database):
             await logs.ban(client, config, server, bantype, [ban['value']])
         confirmed.append(ban['pk'])
 
-    l.info('bans: done (' + str(len(confirmed)) + ')')
-
     for unban in data['unban']:
         server_id = unban['server']
         bantype   = BanType[unban['ban_type']]
@@ -120,15 +119,11 @@ async def checkupdates(client, config, database):
             await logs.unban(client, config, server, bantype, [unban['value']])
         confirmed.append(unban['pk'])
 
-    l.info('unbans: done (' + str(len(confirmed)) + ')')
-
     for addgroup in data['addgroup']:
         groups = await database.get_groups(addgroup['login'])
         if not addgroup['value'] in groups:
             await database.add_groups(addgroup['login'], [addgroup['value']])
         confirmed.append(addgroup['pk'])
-
-    l.info('addgroups: done (' + str(len(confirmed)) + ')')
 
     for delgroup in data['delgroup']:
         groups = await database.get_groups(delgroup['login'])
@@ -136,9 +131,12 @@ async def checkupdates(client, config, database):
             await database.del_groups(delgroup['login'], [delgroup['value']])
         confirmed.append(delgroup['pk'])
 
-    l.info('delgroups: done (' + str(len(confirmed)) + ')')
+    for certify in data['certify']:
+        await utils.confirm_user(client, certify['login'], certify['value'], config, database)
+        confirmed.append(certify['pk'])
 
     if confirmed:
+        l.info(str(len(confirmed)) + ' updates received')
         r = requests.delete(config['website']['url'] + '/servers/update', data=json.dumps({'pk':confirmed}), auth=get_auth(config))
         l.info('sync with server : ' + str(r.status_code))
 
@@ -154,10 +152,10 @@ async def hooksthread(client, config, database, with_groups=False):
     while not client.is_closed:
         try:
             await checkupdates(client, config, database)
-        except:
-            pass
+        except Exception as e:
+            await logs.error(client, config, e)
 
-        await asyncio.sleep(30)
+        await asyncio.sleep(5)
 
 async def push(config, data):
     r = requests.post(config['website']['url'] + '/servers/push', json=data, auth=get_auth(config))

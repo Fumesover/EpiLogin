@@ -103,7 +103,6 @@ class database:
         ''', hash)
 
         if len(data) == 0:
-            await logs.email_unknown_hash(hash, login)
             return False
 
         await self.conn.execute('''
@@ -119,16 +118,12 @@ class database:
             await self.conn.execute('''
                 INSERT INTO groupes(login, groupe) values($1, $2)
             ''', login, group)
-        if groups:
-            await logs.database_add_groups(login, groups)
 
     async def del_groups(self, login, groups):
         for group in groups:
             await self.conn.execute('''
                 DELETE FROM groupes WHERE login = $1 AND groupe = $2
             ''', login, group)
-        if groups:
-            await logs.database_del_groups(login, groups)
 
     async def ban(self, server_id, type, to_ban):
         await self.conn.execute('''

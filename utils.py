@@ -9,7 +9,7 @@ from database import BanType
 import hooks
 
 def hash_generator():
-    return ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(30))
+    return ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(64))
 
 def ids_of_roles(client, server, roles):
     output = []
@@ -45,9 +45,11 @@ async def give_roles(client, config, member, roles, id=True):
 
 async def send_hello(client, member, hash, config):
     try:
+        url = config['website']['url'] + "/login/?next=/certify/?token=" + hash
+        message = '\n'.join(config['bot']['welcome']) + '\n' + url
+
         await client.start_private_message(member)
-        await client.send_message(member, '\n'.join(config['bot']['welcome']))
-        await client.send_message(member, "[" + hash +"]")
+        await client.send_message(member, message)
 
         return True
     except Exception:
@@ -97,7 +99,15 @@ async def on_member_remove(Bot, member, bdd, config):
         'leaves': {'id':member.id, 'server':member.server.id}
     })
 
-async def new_confirmed_user(client, id, login, config, bdd):
+async def confirm_user(client, login, hash, config, bdd):
+    id = await bdd.confirm_email(hash, login)
+    print(id, login, hash)
+    if not id:
+        await logs.invalid_confirmation(client, login, hash, config)
+        return
+
+    await logs.confirm_login(client, login, hash, id, config)
+
     for server in client.servers:
         member = server.get_member(str(id))
         if member:

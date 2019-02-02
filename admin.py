@@ -72,7 +72,7 @@ EpiLogin: A bot to login with @epita.fr emails
             await database.del_user(u.id)
             await Bot.send_message(message.channel, u.mention + ' deleted')
             await hooks.push(config, {'certify': {'id':u.id, 'login':''}})
-
+            await logs.delete(Bot, config, u)
     elif msg[0] == 'fetchcri':
         l = logging.getLogger('discord.cri_fetch_promos')
         l.info(message.author.id + ' requested fetchcri')
@@ -90,6 +90,7 @@ EpiLogin: A bot to login with @epita.fr emails
         await hooks.push(config, {
             'addgroup': [{'login': login, 'group': group} for group in groups]
         })
+        await logs.database_add_groups(Bot, config, login, groups)
     elif msg[0] == 'delgroups':
         login = msg[1]
         groups = msg[2:]
@@ -98,13 +99,12 @@ EpiLogin: A bot to login with @epita.fr emails
         await hooks.push(config, {
             'delgroup': [{'login': login, 'group': group} for group in groups]
         })
+        await logs.database_del_groups(Bot, config, login, groups)
     elif msg[0] == 'logout':
         l = logging.getLogger('discord.admin.logout')
         l.info(message.author.id + ' requested shutdown')
 
-        await database.close()
-
-        config['email']['status'] = False
+        await Bot.logout()
     elif msg[0] == 'certify':
         l = logging.getLogger('discord.admin.certify')
         l.info(message.author.id + ' certify that ' + msg[1] + ' is ' + msg[2])
@@ -112,9 +112,7 @@ EpiLogin: A bot to login with @epita.fr emails
         await utils.new_user(Bot, message.mentions[0], database, config)
         hash = await database.get_hash(message.mentions[0].id)
 
-        await database.confirm_email(hash, msg[2])
-
-        await utils.new_confirmed_user(Bot, message.mentions[0].id, msg[2], config, database)
+        await utils.confirm_user(Bot, msg[2], hash, config, database)
     elif msg[0] == 'ban':
         server = message.server
 
