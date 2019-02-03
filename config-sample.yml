@@ -6,6 +6,7 @@ bot:
             Tu es inconnu de nos services,
             Pour rejoindre ce serveur, je t'invite a cliquer sur le lien
             suivant.
+    logs: "channel_id_here"
 database:
     url: postgres://postgres@epilogin-db/postgres
 website:
