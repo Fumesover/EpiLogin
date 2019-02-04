@@ -1,8 +1,10 @@
-# EPILOGIN: Easy github auth using emails
+# EPILOGIN: Easy discord auth using microsoft oauth2
 
 This is a discord bot that allow you to authentificate users using their emails.
 
 ### Run this bot localy
+
+/!\ The API is not working with Python > 3.6 /!\
 
 ```bash
 # First get a postgresql server running on your computer
@@ -20,10 +22,3 @@ python3.6 -m pip install -r requirements.txt
 python3.6 main.py
 ```
 
-### Backup and restore
-
-Backup:
-> docker-compose exec epilogin-db pg_dump postgres -U postgres  > backup.sql
-
-Restore:
-> cat backup.sql | docker exec -i $(docker-compose ps -q epilogin-db) psql -U postgres
