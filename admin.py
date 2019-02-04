@@ -23,7 +23,7 @@ async def new_message(Bot, database, message, config):
         msg = """```
 EpiLogin: A bot to login with @epita.fr emails
 - help                      <= show this message
-- new *users                <= resend message for hash or add roles
+- new *users | @everyone    <= resend message for hash or add roles
 - getlogin *users           <= get login of users
 - picture *users            <= get face of users
 - gethash *users            <= get hash of users
@@ -39,11 +39,16 @@ EpiLogin: A bot to login with @epita.fr emails
 - isbanned [user|login|group] *data <= check if something is banned
 - getbans                   <= get list of banned users
 - find *groups              <= find users with all matching groups
+- syncgroups                <= sync groups with the webserver
 ```"""
         await Bot.send_message(message.channel, msg)
     elif msg[0] == 'new': # <= request hash or update roles
-        for u in message.mentions:
-            await Bot.on_member_join(u)
+        if message.mention_everyone:
+            for u in message.server.members:
+                await Bot.on_member_join(u)
+        else:
+            for u in message.mentions:
+                await Bot.on_member_join(u)
     elif msg[0] == 'getlogin':
         for u in message.mentions:
             login = await database.get_login(u.id)

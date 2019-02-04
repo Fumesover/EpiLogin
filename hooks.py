@@ -158,4 +158,5 @@ async def hooksthread(client, config, database, with_groups=False):
         await asyncio.sleep(60)
 
 async def push(config, data):
-    r = requests.post(config['website']['url'] + '/servers/push', json=data, auth=get_auth(config))
+    if config['website']['enable']:
+        r = requests.post(config['website']['url'] + '/servers/push', json=data, auth=get_auth(config))
