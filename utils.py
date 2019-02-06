@@ -46,7 +46,11 @@ async def give_roles(client, config, member, roles, id=True):
 async def send_hello(client, member, hash, config):
     try:
         url = config['website']['url'] + "/login/?next=/certify/?token=" + hash
-        message = '\n'.join(config['bot']['welcome']) + '\n' + url
+        message = '\n'.join([
+            string.Template(s).safe_substitute(
+                server=member.server.name,
+            ) for s in config['bot']['welcome']
+        ]) + '\n' + url
 
         await client.start_private_message(member)
         await client.send_message(member, message)

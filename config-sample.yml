@@ -2,10 +2,10 @@ bot:
     tokken: xxxxxx.xxxxxxxx.xxxxxxxxxxx
     welcome:
         - Message multi-lignes
-        - Exemple 
+        - Exemple
         - >
             Tu es inconnu de nos services,
-            Pour rejoindre ce serveur, je t'invite a cliquer sur le lien
+            Pour rejoindre $server, je t'invite a cliquer sur le lien
             suivant.
     logs: "root channel with logs of all servers"
 database:
