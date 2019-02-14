@@ -145,3 +145,10 @@ async def error(client, config, e):
 
     channel = get_channel(client, config['bot']['logs'])
     await client.send_message(channel, 'error: ' + str(e))
+
+async def admin_command(client, config, message):
+    l = get_logger('discord.admin')
+    l.info(message.author.id + ' : ' + message.content)
+
+    channel = get_channel(client, config['bot']['logs'])
+    await client.send_message(channel, message.author.mention + ' on ' + message.server.name + ' : ' + message.content)

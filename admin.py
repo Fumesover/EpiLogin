@@ -15,9 +15,7 @@ import hooks
 async def new_message(Bot, database, message, config):
     msg = message.content.split(' ')
 
-    l = logging.getLogger('discord.admin')
-    l.info(message.author.id + ' : ' + message.content)
-
+    await logs.admin_command(Bot, config, message)
 
     if msg[0] == 'help':
         msg = """```
