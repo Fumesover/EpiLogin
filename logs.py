@@ -151,4 +151,4 @@ async def admin_command(client, config, message):
     l.info(message.author.id + ' : ' + message.content)
 
     channel = get_channel(client, config['bot']['logs'])
-    await client.send_message(channel, message.author.mention + ' on ' + message.server.name + ' : ' + message.content)
+    await client.send_message(channel, message.author.name + '#' + message.author.discriminator + ' on ' + message.server.name + ' : ' + message.content)
