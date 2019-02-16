@@ -79,11 +79,12 @@ async def new_user(client, member, bdd, config):
         await bdd.add_user(member.id, hash)
         await logs.new_user(client, member, hash, config)
 
-async def on_member_join(client, member, bdd, config):
+async def on_member_join(client, member, bdd, config, create_if_unk=True):
     login = await bdd.get_login(member.id)
 
     if login == None:
-        await new_user(client, member, bdd, config)
+        if create_if_unk:
+            await new_user(client, member, bdd, config)
     else:
         ranks  = [] + config['servers'][member.server.id]['rank']
         groups = await bdd.get_groups(login)

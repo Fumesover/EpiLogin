@@ -22,6 +22,7 @@ async def new_message(Bot, database, message, config):
 EpiLogin: A bot to login with @epita.fr emails
 - help                      <= show this message
 - new *users | @everyone    <= resend message for hash or add roles
+- update *users | @everyone <= add roles if user is known
 - getlogin *users           <= get login of users
 - picture *users            <= get face of users
 - gethash *users            <= get hash of users
@@ -47,6 +48,13 @@ EpiLogin: A bot to login with @epita.fr emails
         else:
             for u in message.mentions:
                 await Bot.on_member_join(u)
+    elif msg[0] == 'update': # <= request hash or update roles
+        if message.mention_everyone:
+            for u in message.server.members:
+                await utils.on_member_join(Bot, u, database, config, create_if_unk=False)
+        else:
+            for u in message.mentions:
+                await utils.on_member_join(Bot, u, database, config, create_if_unk=False)
     elif msg[0] == 'getlogin':
         for u in message.mentions:
             login = await database.get_login(u.id)
