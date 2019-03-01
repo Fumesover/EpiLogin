@@ -26,7 +26,7 @@ async def del_roles(client, config, member, roles):
         server = member.server
         to_remove = []
         for role in roles:
-            r = discord.utils.get(server.roles, name=role)
+            r = discord.utils.get(server.roles, id=role)
             if r: to_remove.append(r)
 
         await client.remove_roles(member, *to_remove)
