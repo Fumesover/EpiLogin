@@ -11,16 +11,16 @@ async def new_message(Bot, message, config):
     msg = message.content.split(' ')
 
     async def help():
-        msg = """```
-    Usage:
-    - help                            show this message
-    - new    [*users | @everyone]     send hello message or update
-    - update [*users | @everyone]     update roles of user
-    - this                            get the server page on website
-    - get    [*users | id | login]    get the member page on website
-    - logout                          shut down the bot
-    - syncconf [this | all]           reload configuration from server
-    ```"""
+        msg = (
+            "```Usage:\n"
+            "- help                            show this message\n"
+            "- new    [*users | @everyone]     send hello message or update\n"
+            "- update [*users | @everyone]     update roles of user\n"
+            "- get    [*users | id | login]    get the member page on website\n"
+            "- this                            get the server page on website\n"
+            "- logout                          shut down the bot\n"
+            "- syncconf [this | all]           reload configuration from server```"
+        )
         await message.channel.send(msg)
 
     async def update(create_if_unk=False):

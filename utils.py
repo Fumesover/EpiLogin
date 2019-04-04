@@ -4,7 +4,7 @@ import string
 
 import api
 
-async def del_roles(member, roles):
+async def __del_roles(member, roles):
     if member and roles:
         server = member.guild
         to_remove = []
@@ -16,7 +16,7 @@ async def del_roles(member, roles):
 # TODO: handle errors (cf https://discordpy.readthedocs.io/en/rewrite/api.html#discord.Member.add_roles)
         await member.remove_roles(*to_remove)
 
-async def give_roles(member, roles):
+async def __add_roles(member, roles):
     if member and roles:
         server = member.guild
         new_roles = []
@@ -44,8 +44,8 @@ async def set_roles(config, member, to_set):
     to_remove = [id for id in to_del if id in user_roles]
     to_add    = [id for id in to_set if not id in user_roles]
 
-    await del_roles(member, to_remove)
-    await add_roles(member, to_add)
+    await __del_roles(member, to_remove)
+    await __add_roles(member, to_add)
 
 async def send_hello(client, member, hash, config):
     try:
@@ -95,7 +95,6 @@ async def on_member_join(client, member, config, create_if_unk=True):
         else:
             ranks += config_ranks['confirmed']
 
-        # await give_roles(client, config, member, ranks)
         await set_roles(config, member, ranks)
 
 def check_ban(member, login, groups, config):

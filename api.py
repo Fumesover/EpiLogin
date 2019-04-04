@@ -24,8 +24,6 @@ def fetch_paginate(next):
 
         data = r.json()
 
-        # print('Data recieved from', next, '', data)
-
         output += data['results']
         next = data['next']
 
@@ -140,10 +138,12 @@ def update_conf(config, server_id):
     return True
 
 def on_member_remove(config, guild_id, member_id):
-    pass
+    url = "{}/api/members/{}/server/".format(config['website']['url'], member_id)
+    r = requests.delete(url, {'id': guild_id})
 
 def on_member_join(config, guild_id, member_id):
-    pass
+    url = "{}/api/members/{}/server/".format(config['website']['url'], member_id)
+    r = requests.post(url, {'id': guild_id})
 
 def on_guild_join(config, guild_id):
     url = "{}/api/servers/".format(config['website']['url'])

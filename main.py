@@ -20,7 +20,6 @@ config = None
 @Bot.event
 async def on_ready():
     for guild in Bot.guilds:
-        # print("Connected to:", guild)
         api.on_guild_join(config, guild.id)
     api.update_conf_all(config)
 
@@ -32,11 +31,6 @@ async def on_message(message):
         return
 
     guild_id = message.guild.id
-
-    # print(config)
-    # print(config['servers'])
-    # print(not guild_id in config['servers'])
-    # print(config['servers'][guild_id]['is_active'])
 
     if (not guild_id in config['servers']) or not config['servers'][guild_id]['is_active']:
         print(message.guild, 'is not active')
