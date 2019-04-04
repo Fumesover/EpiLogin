@@ -1,143 +1,84 @@
 import discord
 import asyncio
-import random
 import string
 
-import logs
-import database
-from database import BanType
-import hooks
-
-def hash_generator():
-    return ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(64))
-
-def ids_of_roles(client, server, roles):
-    output = []
-
-    if client and roles and server:
-        for role in roles:
-            r = discord.utils.get(server.roles, name=role)
-            if r: output.append(r.id)
-
-    return output
+import api
 
 async def del_roles(client, config, member, roles):
     if member and client and roles:
-        server = member.server
+        server = member.guild
         to_remove = []
         for role in roles:
             r = discord.utils.get(server.roles, id=role)
             if r: to_remove.append(r)
 
         await client.remove_roles(member, *to_remove)
-        await logs.del_roles(client, config, member, to_remove)
 
 async def give_roles(client, config, member, roles, id=True):
     if member and client and roles:
-        server = member.server
+        server = member.guild
         new_roles = []
         for role in roles:
             r = discord.utils.get(server.roles, id=role)
             if r: new_roles.append(r)
 
         await client.add_roles(member, *new_roles)
-        await logs.new_roles(client, config, member, new_roles)
 
 async def send_hello(client, member, hash, config):
     try:
         url = config['website']['url'] + "/login/?next=/certify/?token=" + hash
         message = '\n'.join([
             string.Template(s).safe_substitute(
-                server=member.server.name,
+                server=member.guild.name,
             ) for s in config['bot']['welcome']
         ]) + '\n' + url
 
         await client.start_private_message(member)
         await client.send_message(member, message)
 
-        return True
     except Exception:
-        await logs.reject_mp(client, member, config)
-        return False
+        pass
 
-async def check_not_confirmed(client, member, bdd, config):
-    hash = await bdd.get_hash(member.id)
-    if not hash:
-        return False
+async def on_member_join(client, member, config, create_if_unk=True):
+    user = api.get_member(member.id)
+    api.on_member_join(member.guild.id, member.id)
 
-    if await send_hello(client, member, hash, config):
-        await logs.new_unconfirmed(client, member, hash, config)
-
-    return True
-
-async def new_user(client, member, bdd, config):
-    if await check_not_confirmed(client, member, bdd, config):
-        return
-
-    hash = hash_generator()
-    if await send_hello(client, member, hash, config):
-        await bdd.add_user(member.id, hash)
-        await logs.new_user(client, member, hash, config)
-
-async def on_member_join(client, member, bdd, config, create_if_unk=True):
-    login = await bdd.get_login(member.id)
-
-    if login == None:
+    if not user:
         if create_if_unk:
-            await new_user(client, member, bdd, config)
-    else:
-        ranks  = [] + config['servers'][member.server.id]['rank']
-        groups = await bdd.get_groups(login)
-        ranks += ids_of_roles(client, member.server, groups)
+            user = api.create_member(member.id)
+        else:
+            return
 
-        if await check_ban(bdd, member.server.id, member.id, login, groups):
-            ranks = [] + config['servers'][member.server.id]['banned']
+    login = user['login']
+
+    if not login:
+        send_hello(client, member, user['hash'], config)
+    else:
+        config_ranks = config['servers'][member.guild.id]['ranks']
+
+        user_groups = api.get_groups(login)
+        user_groups = user_groups if user_groups else []
+
+        ranks = [id for id in user_groups if id in config_ranks['classic']]
+
+        if check_ban(member, login, ranks, config):
+            ranks = config_ranks['banned']
+        else:
+            ranks += config_ranks['confirmed']
 
         await give_roles(client, config, member, ranks)
 
-    await hooks.push(config, {
-        'joined': {'id':member.id, 'server':member.server.id, 'username': member.name}
-    })
+def check_ban(member, login, groups, config):
+    server_id = member.guild.id
 
-async def on_member_remove(Bot, member, bdd, config):
-    await hooks.push(config, {
-        'leaves': {'id':member.id, 'server':member.server.id}
-    })
-
-async def confirm_user(client, login, hash, config, bdd):
-    id = await bdd.confirm_email(hash, login)
-    print(id, login, hash)
-    if not id:
-        await logs.invalid_confirmation(client, login, hash, config)
-        return
-
-    await logs.confirm_login(client, login, hash, id, config)
-
-    for server in client.servers:
-        member = server.get_member(str(id))
-        if member:
-            ranks  = [] + config['servers'][member.server.id]['rank']
-            groups = await bdd.get_groups(login)
-            ranks += ids_of_roles(client, server, groups)
-
-            if await check_ban(bdd, server.id, str(id), login, groups):
-                ranks = [] + config['servers'][member.server.id]['banned']
-
-            await give_roles(client, config, member, ranks)
-            await logs.new_confirmed_user(client, member, login, config)
-
-    await hooks.push(config, {
-        'certify': {'id':str(id), 'login':login}
-    })
-
-async def check_ban(database, server_id, user_id, login, groups):
-    if await database.check_ban(server_id, BanType.user, [user_id]):
+    if login in config['servers'][server_id]['bans']['login']:
         return True
 
-    if await database.check_ban(server_id, BanType.login, [login]):
+    if member.id in config['servers'][server_id]['bans']['user']:
         return True
 
-    if await database.check_ban(server_id, BanType.group, groups):
-        return True
+    for group in groups:
+        if group in config['servers'][server_id]['bans']['group']:
+            return True
 
     return False

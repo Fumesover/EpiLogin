@@ -11,23 +11,6 @@ bot:
 database:
     url: postgres://postgres@localhost/postgres
 website:
-    enable:     True
-    url:        http://127.0.0.1:8000
-    username:   admin
-    password:   pass
-servers:
-    "server_id_here":
-        logs:     "channel_id_here"
-        admin:    "channel_id_here"
-        rank: # ranks for authenticated users
-            - "role_id_here"
-            - "other_role_id"
-        banned: # ranks for banned users
-            - "role_id_here"
-    "other_server":
-        logs:     "channel_id_here"
-        admin:    "channel_id_here"
-        rank:
-            - "role_id_here"
-        banned:
-            - "role_id_here"
+    enable: True
+    url:    http://127.0.0.1:8000
+    token:  123456
