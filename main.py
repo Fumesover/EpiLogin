@@ -1,10 +1,11 @@
-#!/bin/python3.6
+#!/bin/python
 
 import asyncio
 import discord
 import logging
 import argparse
 import yaml
+import time
 
 import utils
 import admin
@@ -19,8 +20,9 @@ config = None
 @Bot.event
 async def on_ready():
     for guild in Bot.guilds:
-        api.on_guild_join(guild.id)
-    api.__update_conf_all()
+        # print("Connected to:", guild)
+        api.on_guild_join(config, guild.id)
+    api.update_conf_all(config)
 
 @Bot.event
 async def on_message(message):
@@ -29,9 +31,22 @@ async def on_message(message):
     if message.guild == None:
         return
 
-    if message.channel.id == config['servers'][message.guild.id]['channel_admin']:
+    guild_id = message.guild.id
+
+    # print(config)
+    # print(config['servers'])
+    # print(not guild_id in config['servers'])
+    # print(config['servers'][guild_id]['is_active'])
+
+    if (not guild_id in config['servers']) or not config['servers'][guild_id]['is_active']:
+        print(message.guild, 'is not active')
+        return
+
+    print(message.guild, 'is active')
+
+    if message.channel.id == config['servers'][guild_id]['channel_admin']:
         await admin.new_message(Bot, message, config)
-    if message.channel.id == config['servers'][message.guild.id]['channel_request']:
+    if message.channel.id == config['servers'][guild_id]['channel_request']:
         await utils.on_member_join(Bot, message.author, config)
 
 @Bot.event
@@ -40,7 +55,7 @@ async def on_member_join(member):
 
 @Bot.event
 async def on_member_remove(member):
-    api.on_member_remove(member.id)
+    api.on_member_remove(config, member.id)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Discord bot for EPITA')

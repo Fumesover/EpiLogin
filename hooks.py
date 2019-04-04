@@ -5,23 +5,13 @@ import json
 import requests
 
 import utils
-import logs
 
 def checkupdates(client, config, database):
-    l = logs.get_logger('hooks.checkupdates')
-    l.info('checking updates ...')
+#    l = logs.get_logger('hooks.checkupdates')
+#    l.info('checking updates ...')
 
     data = api.get_updates()
     confirmed = []
-
-    if False:
-        trucs = [
-            'CONFIRMED',
-            'BAN',
-            'UNBAN',
-            'DELGROUP',
-            'ADDGROUP'
-        ]
 
     def confirmed(data):
         pass
@@ -57,6 +47,7 @@ async def hooksthread(client, config):
         try:
             await checkupdates(client, config)
         except Exception as e:
-            await logs.error(client, config, e)
+            pass
+            # await logs.error(client, config, e)
 
         await asyncio.sleep(60) # todo: pass this as a parameter

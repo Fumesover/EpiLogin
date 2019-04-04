@@ -7,7 +7,7 @@ import api
 
 __re_id_form_tag = re.compile('([0-9]{18})')
 
-async def new_message(Bot, database, message, config):
+async def new_message(Bot, message, config):
     msg = message.content.split(' ')
 
     async def help():
@@ -21,22 +21,22 @@ async def new_message(Bot, database, message, config):
     - logout                          shut down the bot
     - syncconf [this | all]           reload configuration from server
     ```"""
-        await Bot.send_message(message.channel, msg)
+        await message.channel.send(msg)
 
     async def update(create_if_unk=False):
         if message.mention_everyone:
             for u in message.guild.members:
-                await Bot.on_member_join(Bot, u, config, create_if_unk=create_if_unk)
+                await utils.on_member_join(Bot, u, config, create_if_unk=create_if_unk)
         else:
             for u in message.mentions:
-                await Bot.on_member_join(Bot, u, config, create_if_unk=create_if_unk)
+                await utils.on_member_join(Bot, u, config, create_if_unk=create_if_unk)
 
     async def new():
         await update(create_if_unk=True)
 
     async def this():
         msg = "{}/servers/{}/".format(config['website']['url'], message.guild.id)
-        await Bot.send_message(message.channel, msg)
+        await message.channel.send(msg)
 
     async def get():
         ids = []
@@ -46,7 +46,7 @@ async def new_message(Bot, database, message, config):
             if req:
                 ids.append((True, el, req.match(1)))
             else:
-                ids = api.get_ids(el)
+                ids = api.get_ids(config, el)
                 for id in ids:
                     ids.append((True, el, id))
                 if not ids:
@@ -57,15 +57,15 @@ async def new_message(Bot, database, message, config):
                 msg = '{} not found'.format(el)
             else:
                 msg = '{} found: {}/members/{}/'.format(el, config['website']['url'], id)
-            await Bot.send_message(message.channel, msg)
+            await message.channel.send(msg)
 
     async def syncconf():
         if len(msg) < 2:
             return
         elif msg[1] == 'all':
-            api.update_conf_all()
+            api.update_conf_all(config)
         elif msg[1] == 'this':
-            api.update_conf(message.guild.id)
+            api.update_conf(config, message.guild.id)
 
     async def logout():
         await Bot.logout()
@@ -81,4 +81,4 @@ async def new_message(Bot, database, message, config):
     }
 
     if msg[0] in handler:
-        handler[msg[0]]()
+        await handler[msg[0]]()

@@ -16,19 +16,22 @@ def fetch_paginate(next):
     output = []
 
     while next:
-        r = requests.get(url)
+        r = requests.get(next)
 
         if r.status_code != 200:
+            print('Request failed,', next, r.status_code)
             return None
 
         data = r.json()
+
+        # print('Data recieved from', next, '', data)
 
         output += data['results']
         next = data['next']
 
     return output
 
-def get_member(discord_id):
+def get_member(config, discord_id):
     url = "{}/api/members/{}/".format(config['website']['url'], discord_id)
     r = requests.get(url)
 
@@ -37,7 +40,7 @@ def get_member(discord_id):
     else:
         return None
 
-def create_member(discord_id):
+def create_member(config, discord_id):
     url = "{}/api/members/".format(config['website']['url'])
     r = requests.post(url, {'id': discord_id})
 
@@ -46,23 +49,23 @@ def create_member(discord_id):
     else:
         return None
 
-def get_ids(login):
+def get_ids(config, login):
     url = "{}/api/members/?login={}".format(config['website']['url'], login)
     return fetch_paginate(url)
 
-def get_groups(login='', group=''):
+def get_groups(config, login='', group=''):
     url = "{}/api/groups/?login={}&group={}".format(config['website']['url'], login, group)
     return fetch_paginate(url)
 
-def get_bans(server, login='', group=''):
+def get_bans(config, server, login='', group=''):
     url = "{}/api/bans/?server={}&type={}&value={}".format(server, login, group)
     return fetch_paginate(url)
 
-def get_updates():
+def get_updates(config):
     url = "{}/api/updates/".format(config['website']['url'])
     return fetch_paginate(url)
 
-def del_updates(ids):
+def del_updates(config, ids):
     for id in ids:
         url = "{}/api/updates/{}/".format(config['website']['url'], id)
         r.delete(url)
@@ -96,9 +99,9 @@ def __format_ranks(server):
                 server['ranks'][type][name] = []
             server['ranks'][type][name].append(discord_id)
         else:
-            server['ranks'][type].append(rank_id)
+            server['ranks'][type].append(discord_id)
 
-def update_conf_all():
+def update_conf_all(config):
     url = '{}/api/servers/'.format(config['website']['url'])
     data = fetch_paginate(url)
 
@@ -109,18 +112,20 @@ def update_conf_all():
 
     for server in data:
         server_id = server.pop('id')
-        new[server['id']] = server
+        new[server_id] = server
 
         __format_ranks(server)
         __format_bans(server)
 
     config['servers'] = new
 
+    print(json.dumps(config, indent=4))
+
     return True
 
-def update_conf(server_id):
+def update_conf(config, server_id):
     url = '{}/api/servers/{}/'.format(config['website']['url'], server_id)
-    r = r.get(url)
+    r = requests.get(url)
 
     if r.status_code != 200:
         return False
@@ -130,14 +135,16 @@ def update_conf(server_id):
     __format_bans(server)
     config['servers'][server_id] = server
 
+    print(json.dumps(server, indent=4))
+
     return True
 
-def on_member_remove(member_id):
+def on_member_remove(config, guild_id, member_id):
     pass
 
-def on_member_join(member_id):
+def on_member_join(config, guild_id, member_id):
     pass
 
-def on_guild_join(guild_id):
+def on_guild_join(config, guild_id):
     url = "{}/api/servers/".format(config['website']['url'])
     r = requests.post(url, {'id': guild_id})
