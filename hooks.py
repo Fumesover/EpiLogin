@@ -142,32 +142,20 @@ async def checkupdates(client, config):
     for update in data:
         if 'type' in update and update['type'] in handelers:
             await handelers[update['type']](update)
-        else:
-            print('wtf ?', update)
-
-    print('confirmed', confirmed)
 
     if confirmed:
         r = api.del_updates(config, confirmed)
 
 async def hooksthread(client, config):
     await client.wait_until_ready()
+
     while not 'servers' in config:
         await asyncio.sleep(10)
 
     while not client.is_closed():
-        print('on the loop')
         try:
-        #if True:
-            print('before checkupdates')
             await checkupdates(client, config)
-            print('after checkupdates')
         except Exception as e:
-            print(5, e)
-            raise e
-        #    pass
-            # await logs.error(client, config, e)
-        print('before sleep')
+            print(e)
+
         await asyncio.sleep(10) # todo: pass this as a parameter
-        print('after sleep')
-    print('hooks are going down')
