@@ -66,6 +66,24 @@ async def send_hello(client, member, hash, config):
         print('TODO: send_hello: add logs here')
         pass
 
+async def on_certify(config, member, login):
+    config_ranks = config['servers'][member.guild.id]['ranks']
+
+    user_groups = api.get_groups(config, login)
+    user_groups = user_groups if user_groups else []
+
+    ranks = []
+    for group in user_groups:
+        if group['group'] in config_ranks['classic']:
+            ranks += config_ranks['classic'][group['group']]
+
+    if check_ban(member, login, ranks, config):
+        ranks = config_ranks['banned']
+    else:
+        ranks += config_ranks['confirmed']
+
+    await set_roles(config, member, ranks)
+
 async def on_member_join(client, member, config, create_if_unk=True):
     user = api.get_member(config, member.id)
     api.on_member_join(config, member.guild.id, member.id)
@@ -80,22 +98,7 @@ async def on_member_join(client, member, config, create_if_unk=True):
     if not login:
         await send_hello(client, member, user['hash'], config)
     else:
-        config_ranks = config['servers'][member.guild.id]['ranks']
-
-        user_groups = api.get_groups(config, login)
-        user_groups = user_groups if user_groups else []
-
-        ranks = []
-        for group in user_groups:
-            if group['group'] in config_ranks['classic']:
-                ranks += config_ranks['classic'][group['group']]
-
-        if check_ban(member, login, ranks, config):
-            ranks = config_ranks['banned']
-        else:
-            ranks += config_ranks['confirmed']
-
-        await set_roles(config, member, ranks)
+        await on_certify(config, member, login)
 
 def check_ban(member, login, groups, config):
     server_id = member.guild.id
@@ -103,7 +106,7 @@ def check_ban(member, login, groups, config):
     if login in config['servers'][server_id]['bans']['login']:
         return True
 
-    if member.id in config['servers'][server_id]['bans']['user']:
+    if str(member.id) in config['servers'][server_id]['bans']['user']:
         return True
 
     for group in groups:

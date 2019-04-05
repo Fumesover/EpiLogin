@@ -5,15 +5,22 @@ import json
 import requests
 
 import utils
+import api
 
-def checkupdates(client, config, database):
-#    l = logs.get_logger('hooks.checkupdates')
-#    l.info('checking updates ...')
-
-    data = api.get_updates()
+async def checkupdates(client, config):
+    data = api.get_updates(config)
     confirmed = []
 
-    def confirmed(data):
+    def certify(data):
+        {
+            'id': 2,
+            'type': 'certify',
+            'ban_type': '',
+            'login': 'albin.parou',
+            'value': '238378747357560832',
+            'server': None
+        }
+
         pass
 
     def ban(data):
@@ -29,25 +36,34 @@ def checkupdates(client, config, database):
         pass
 
     handelers = {
-        'CONFIRMED': confirmed,
-        'BAN': ban,
-        'UNBAN': unban,
-        'DELGROUP': addgroup,
-        'ADDGROUP': delgroup
+        'certify': certify,
+        'ban': ban,
+        'unban': unban,
+        'addgroup': delgroup,
+        'delgroup': addgroup,
     }
 
     for update in data:
-        pass
+        print(update)
+
+    print(confirmed)
 
     if confirmed:
         r = api.del_updates(confirmed)
 
 async def hooksthread(client, config):
-    while not client.is_closed:
+    await client.wait_until_ready()
+    while not client.is_closed():
+        print(2)
         try:
+            print(3)
             await checkupdates(client, config)
+            print(4)
         except Exception as e:
+            print(5, e)
             pass
             # await logs.error(client, config, e)
-
+        print(6)
         await asyncio.sleep(60) # todo: pass this as a parameter
+        print(7)
+    print(8)

@@ -42,7 +42,7 @@ def create_member(config, discord_id):
     url = "{}/api/members/".format(config['website']['url'])
     r = requests.post(url, {'id': discord_id})
 
-    if r.status_code == 200:
+    if r.status_code == 201:
         return r.json()
     else:
         return None
@@ -117,7 +117,7 @@ def update_conf_all(config):
 
     config['servers'] = new
 
-    print(json.dumps(config, indent=4))
+    # print(json.dumps(config, indent=4))
 
     return True
 
@@ -133,7 +133,7 @@ def update_conf(config, server_id):
     __format_bans(server)
     config['servers'][server_id] = server
 
-    print(json.dumps(server, indent=4))
+    # print(json.dumps(server, indent=4))
 
     return True
 

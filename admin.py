@@ -5,7 +5,7 @@ import re
 import utils
 import api
 
-__re_id_form_tag = re.compile('([0-9]{18})')
+__re_id_form_tag = re.compile('.*([0-9]{18}).*')
 
 async def new_message(Bot, message, config):
     msg = message.content.split(' ')
@@ -41,22 +41,22 @@ async def new_message(Bot, message, config):
     async def get():
         ids = []
 
-        for el in msg[1:]:
+        for el in message.content.split(' ')[1:]:
             req = __re_id_form_tag.match(el)
             if req:
-                ids.append((True, el, req.match(1)))
+                ids.append((True, el, req.group(1)))
             else:
-                ids = api.get_ids(config, el)
-                for id in ids:
-                    ids.append((True, el, id))
+                user_ids = api.get_ids(config, el)
+                for id in user_ids:
+                    ids.append((True, el, id['id']))
                 if not ids:
                     ids.append((False, el, el))
 
         for (found, el, id) in ids:
             if found:
-                msg = '{} not found'.format(el)
-            else:
                 msg = '{} found: {}/members/{}/'.format(el, config['website']['url'], id)
+            else:
+                msg = '{} not found'.format(el)
             await message.channel.send(msg)
 
     async def syncconf():

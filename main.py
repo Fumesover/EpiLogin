@@ -33,10 +33,7 @@ async def on_message(message):
     guild_id = message.guild.id
 
     if (not guild_id in config['servers']) or not config['servers'][guild_id]['is_active']:
-        print(message.guild, 'is not active')
         return
-
-    print(message.guild, 'is active')
 
     if message.channel.id == config['servers'][guild_id]['channel_admin']:
         await admin.new_message(Bot, message, config)
