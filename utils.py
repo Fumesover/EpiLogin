@@ -77,7 +77,7 @@ async def on_certify(config, member, login):
         if group['group'] in config_ranks['classic']:
             ranks += config_ranks['classic'][group['group']]
 
-    if check_ban(member, login, ranks, config):
+    if check_ban(member, login, user_groups, config):
         ranks = config_ranks['banned']
     else:
         ranks += config_ranks['confirmed']
@@ -109,6 +109,8 @@ def check_ban(member, login, groups, config):
     if str(member.id) in config['servers'][server_id]['bans']['user']:
         return True
 
+    print(config['servers'][server_id]['bans']['group'])
+    print(groups)
     for group in groups:
         if group in config['servers'][server_id]['bans']['group']:
             return True

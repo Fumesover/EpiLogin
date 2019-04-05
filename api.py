@@ -66,7 +66,7 @@ def get_updates(config):
 def del_updates(config, ids):
     for id in ids:
         url = "{}/api/updates/{}/".format(config['website']['url'], id)
-        r.delete(url)
+        r = requests.delete(url)
 
 def __format_bans(server):
     ban_set = server.pop('ban_set')
@@ -77,7 +77,7 @@ def __format_bans(server):
     }
 
     for ban in ban_set:
-        server['bans'][ban['type']] = ban['value']
+        server['bans'][ban['type']].append(ban['value'])
 
 def __format_ranks(server):
     rank_set = server.pop('rank_set')
