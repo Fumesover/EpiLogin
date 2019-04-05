@@ -11,48 +11,106 @@ async def checkupdates(client, config):
     data = api.get_updates(config)
     confirmed = []
 
-    print(config)
-
     async def certify(data):
-        #{
-        #    'id': 2,
-        #    'type': 'certify',
-        #    'ban_type': '',
-        #    'login': 'albin.parou',
-        #    'value': '238378747357560832',
-        #    'server': None
-        #}
-
         user_id    = int(data['value'])
         user_login = data['login']
-
-        print(user_login)
 
         for guild in client.guilds:
             m = guild.get_member(user_id)
             if m:
-                print(42)
                 await utils.on_certify(config, m, user_login)
-                print(890)
         confirmed.append(data['id'])
+    #TODO: SEND MESSAGE TO USER
 
     async def ban(data):
-        pass
+        guild_id = data['server']
+        guild = client.get_guild(guild_id)
+        if not guild or not config['servers'][guild_id]['is_active']:
+            return
+
+        async def ban_user(data):
+            try:
+                user_id = int(data['value'])
+            except ValueError:
+                return
+            m    = guild.get_member(user_id)
+            if m:
+                to_set = [] + config['servers'][guild_id]['ranks']['banned']
+                await utils.set_roles(config, m, to_set)
+
+        async def ban_login(data):
+            ids = api.get_ids(config, data['login'])
+            for id in ids:
+                if 'id' in id:
+                    await ban_user({'value': str(id['id'])})
+
+        async def ban_group(data):
+            users = api.get_groups(config, group=data['value'])
+            for user in users:
+                await ban_login(user)
+
+        handler = {
+            'user': ban_user,
+            'group': ban_group,
+            'login': ban_login,
+        }
+
+        if data['ban_type'] in handler:
+            await handler[data['ban_type']](data)
+            confirmed.append(data['id'])
 
     async def unban(data):
-        pass
+        guild_id = data['server']
+        guild = client.get_guild(guild_id)
+        if not guild or not config['servers'][guild_id]['is_active']:
+            return
+
+        async def unban_user(data):
+            try:
+                user_id = int(data['value'])
+            except ValueError:
+                return
+            m    = guild.get_member(user_id)
+            if m:
+                await utils.on_member_join(client, m, config)
+
+        async def unban_login(data):
+            ids = api.get_ids(config, data['login'])
+            for id in ids:
+                if 'id' in id:
+                    await unban_user({'value': str(id['id'])})
+
+        async def unban_group(data):
+            users = api.get_groups(config, group=data['value'])
+            for user in users:
+                await unban_login(user)
+
+        handler = {
+            'user': unban_user,
+            'group': unban_group,
+            'login': unban_login,
+        }
+
+        if data['ban_type'] in handler:
+            await handler[data['ban_type']](data)
+            confirmed.append(data['id'])
 
     async def addgroup(data):
-        pass
-
-    async def delgroup(data):
-        pass
+        login = data['login']
+        ids = api.get_ids(config, login)
+        for user in ids:
+            if user['id']:
+                for guild in client.guilds:
+                    m = guild.get_member(user['id'])
+                    if m:
+                        await utils.on_certify(config, m, login)
+        confirmed.append(data['id'])
 
     handelers = {
         'certify': certify,
         'ban': ban,
         'unban': unban,
-        'addgroup': delgroup,
+        'addgroup': addgroup,
         'delgroup': addgroup,
     }
 
@@ -61,30 +119,30 @@ async def checkupdates(client, config):
             await handelers[update['type']](update)
         else:
             print('wtf ?', update)
-        # print(update)
 
-
-    print(confirmed)
+    print('confirmed', confirmed)
 
     if confirmed:
         r = api.del_updates(config, confirmed)
 
 async def hooksthread(client, config):
     await client.wait_until_ready()
-    await asyncio.sleep(10)
+    while not 'servers' in config:
+        await asyncio.sleep(10)
 
     while not client.is_closed():
-        print(2)
-        #try:
-        if True:
-            print(3)
+        print('on the loop')
+        try:
+        #if True:
+            print('before checkupdates')
             await checkupdates(client, config)
-            print(4)
-        #except Exception as e:
-        #    print(5, e)
+            print('after checkupdates')
+        except Exception as e:
+            print(5, e)
+            raise e
         #    pass
             # await logs.error(client, config, e)
-        print(6)
-        await asyncio.sleep(60) # todo: pass this as a parameter
-        print(7)
-    print(8)
+        print('before sleep')
+        await asyncio.sleep(10) # todo: pass this as a parameter
+        print('after sleep')
+    print('hooks are going down')

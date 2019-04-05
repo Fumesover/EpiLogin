@@ -109,8 +109,6 @@ def check_ban(member, login, groups, config):
     if str(member.id) in config['servers'][server_id]['bans']['user']:
         return True
 
-    print(config['servers'][server_id]['bans']['group'])
-    print(groups)
     for group in groups:
         if group in config['servers'][server_id]['bans']['group']:
             return True
