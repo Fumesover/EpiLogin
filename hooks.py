@@ -98,12 +98,37 @@ async def checkupdates(client, config):
     async def addgroup(data):
         login = data['login']
         ids = api.get_ids(config, login)
+
         for user in ids:
-            if user['id']:
-                for guild in client.guilds:
+            if not user['id']:
+                continue
+
+            for guild in client.guilds:
+                config_ranks = config['servers'][guild.id]['ranks']
+                if data['value'] in config_ranks['classic']:
+                    role = config_ranks['classic'][data['value']]
+
                     m = guild.get_member(user['id'])
                     if m:
-                        await utils.on_certify(config, m, login)
+                        await utils.__add_roles(m, role)
+        confirmed.append(data['id'])
+
+    async def delgroup(data):
+        login = data['login']
+        ids = api.get_ids(config, login)
+
+        for user in ids:
+            if not user['id']:
+                continue
+
+            for guild in client.guilds:
+                config_ranks = config['servers'][guild.id]['ranks']
+                if data['value'] in config_ranks['classic']:
+                    role = config_ranks['classic'][data['value']]
+
+                    m = guild.get_member(user['id'])
+                    if m:
+                        await utils.__del_roles(m, role)
         confirmed.append(data['id'])
 
     handelers = {
@@ -111,7 +136,7 @@ async def checkupdates(client, config):
         'ban': ban,
         'unban': unban,
         'addgroup': addgroup,
-        'delgroup': addgroup,
+        'delgroup': delgroup,
     }
 
     for update in data:
