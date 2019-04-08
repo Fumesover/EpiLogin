@@ -3,11 +3,12 @@ import asyncio
 import string
 
 import api
+import logs
 
 async def __del_roles(member, roles):
+    to_remove = []
     if member and roles:
         server = member.guild
-        to_remove = []
         for role in roles:
             r = member.guild.get_role(role)
             if r:
@@ -15,11 +16,12 @@ async def __del_roles(member, roles):
 
 # TODO: handle errors (cf https://discordpy.readthedocs.io/en/rewrite/api.html#discord.Member.add_roles)
         await member.remove_roles(*to_remove)
+    return to_remove
 
 async def __add_roles(member, roles):
+    new_roles = []
     if member and roles:
         server = member.guild
-        new_roles = []
         for role in roles:
             r = member.guild.get_role(role)
             if r:
@@ -27,8 +29,9 @@ async def __add_roles(member, roles):
 
 # TODO: handle errors (cf https://discordpy.readthedocs.io/en/rewrite/api.html#discord.Member.add_roles)
         await member.add_roles(*new_roles)
+    return new_roles
 
-async def set_roles(config, member, to_set):
+async def set_roles(client, config, member, to_set):
     conf_roles = config['servers'][member.guild.id]['ranks']
 
     to_del = [] + conf_roles['banned'] + conf_roles['confirmed']
@@ -44,8 +47,10 @@ async def set_roles(config, member, to_set):
     to_remove = [id for id in to_del if id in user_roles]
     to_add    = [id for id in to_set if not id in user_roles]
 
-    await __del_roles(member, to_remove)
-    await __add_roles(member, to_add)
+    removed = await __del_roles(member, to_remove)
+    added =   await __add_roles(member, to_add)
+    await logs.set_roles(client, config, member, added, removed)
+
 
 async def send_hello(client, member, hash, config):
     try:
@@ -66,23 +71,31 @@ async def send_hello(client, member, hash, config):
         print('TODO: send_hello: add logs here')
         pass
 
-async def on_certify(config, member, login):
+async def on_certify(client, config, member, email):
     config_ranks = config['servers'][member.guild.id]['ranks']
 
-    user_groups = api.get_groups(config, login)
+    user_groups = api.get_groups(config, email=email)
     user_groups = user_groups if user_groups else []
 
     ranks = []
+    print(0, config_ranks['classic'])
+    print(1, ranks)
+    print(1.1, user_groups)
     for group in user_groups:
         if group['group'] in config_ranks['classic']:
             ranks += config_ranks['classic'][group['group']]
+            print(2, ranks)
 
-    if check_ban(member, login, user_groups, config):
+    if not email.split('@')[1] in config['servers'][member.guild.id]['domains']:
+        ranks = config_ranks['banned']
+    elif check_ban(member, email, user_groups, config):
         ranks = config_ranks['banned']
     else:
         ranks += config_ranks['confirmed']
 
-    await set_roles(config, member, ranks)
+    print(ranks)
+
+    await set_roles(client, config, member, ranks)
 
 async def on_member_join(client, member, config, create_if_unk=True):
     user = api.get_member(config, member.id)
@@ -93,17 +106,18 @@ async def on_member_join(client, member, config, create_if_unk=True):
             return
         user = api.create_member(config, member.id)
 
-    login = user['login']
+    email = user['email']
 
-    if not login:
+    if not email:
+        await logs.new_user(client, member, config)
         await send_hello(client, member, user['hash'], config)
     else:
-        await on_certify(config, member, login)
+        await on_certify(client, config, member, email)
 
-def check_ban(member, login, groups, config):
+def check_ban(member, email, groups, config):
     server_id = member.guild.id
 
-    if login in config['servers'][server_id]['bans']['login']:
+    if email in config['servers'][server_id]['bans']['email']:
         return True
 
     if str(member.id) in config['servers'][server_id]['bans']['user']:

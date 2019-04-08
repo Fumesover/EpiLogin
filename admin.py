@@ -3,6 +3,7 @@ import asyncio
 import re
 
 import utils
+import logs
 import api
 
 __re_id_form_tag = re.compile('.*([0-9]{18}).*')
@@ -16,7 +17,7 @@ async def new_message(Bot, message, config):
             "- help                            show this message\n"
             "- new    [*users | @everyone]     send hello message or update\n"
             "- update [*users | @everyone]     update roles of user\n"
-            "- get    [*users | id | login]    get the member page on website\n"
+            "- get    [*users | id | email]    get the member page on website\n"
             "- this                            get the server page on website\n"
             "- logout                          shut down the bot\n"
             "- syncconf [this | all]           reload configuration from server```"
@@ -63,9 +64,9 @@ async def new_message(Bot, message, config):
         if len(msg) < 2:
             return
         elif msg[1] == 'all':
-            api.update_conf_all(config)
+            await api.update_conf_all(Bot, config)
         elif msg[1] == 'this':
-            api.update_conf(config, message.guild.id)
+            await api.update_conf(Bot, config, message.guild.id)
 
     async def logout():
         await Bot.logout()
@@ -81,4 +82,6 @@ async def new_message(Bot, message, config):
     }
 
     if msg[0] in handler:
+        await logs.admin_command(Bot, config, message)
+
         await handler[msg[0]]()

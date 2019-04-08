@@ -6,6 +6,7 @@ import requests
 
 import utils
 import api
+import logs
 
 async def checkupdates(client, config):
     data = api.get_updates(config)
@@ -13,12 +14,12 @@ async def checkupdates(client, config):
 
     async def certify(data):
         user_id    = int(data['value'])
-        user_login = data['login']
+        user_email = data['email']
 
         for guild in client.guilds:
             m = guild.get_member(user_id)
             if m:
-                await utils.on_certify(config, m, user_login)
+                await utils.on_certify(client, config, m, user_email)
         confirmed.append(data['id'])
     #TODO: SEND MESSAGE TO USER
 
@@ -36,10 +37,10 @@ async def checkupdates(client, config):
             m    = guild.get_member(user_id)
             if m:
                 to_set = [] + config['servers'][guild_id]['ranks']['banned']
-                await utils.set_roles(config, m, to_set)
+                await utils.set_roles(client, config, m, to_set)
 
-        async def ban_login(data):
-            ids = api.get_ids(config, data['login'])
+        async def ban_email(data):
+            ids = api.get_ids(config, data['email'])
             for id in ids:
                 if 'id' in id:
                     await ban_user({'value': str(id['id'])})
@@ -47,17 +48,18 @@ async def checkupdates(client, config):
         async def ban_group(data):
             users = api.get_groups(config, group=data['value'])
             for user in users:
-                await ban_login(user)
+                await ban_email(user)
 
         handler = {
             'user': ban_user,
             'group': ban_group,
-            'login': ban_login,
+            'email': ban_email,
         }
 
         if data['ban_type'] in handler:
             await handler[data['ban_type']](data)
-            confirmed.append(data['id'])
+
+        confirmed.append(data['id'])
 
     async def unban(data):
         guild_id = data['server']
@@ -74,8 +76,8 @@ async def checkupdates(client, config):
             if m:
                 await utils.on_member_join(client, m, config)
 
-        async def unban_login(data):
-            ids = api.get_ids(config, data['login'])
+        async def unban_email(data):
+            ids = api.get_ids(config, data['email'])
             for id in ids:
                 if 'id' in id:
                     await unban_user({'value': str(id['id'])})
@@ -83,21 +85,22 @@ async def checkupdates(client, config):
         async def unban_group(data):
             users = api.get_groups(config, group=data['value'])
             for user in users:
-                await unban_login(user)
+                await unban_email(user)
 
         handler = {
             'user': unban_user,
             'group': unban_group,
-            'login': unban_login,
+            'email': unban_email,
         }
 
         if data['ban_type'] in handler:
             await handler[data['ban_type']](data)
-            confirmed.append(data['id'])
+
+        confirmed.append(data['id'])
 
     async def addgroup(data):
-        login = data['login']
-        ids = api.get_ids(config, login)
+        email = data['email']
+        ids = api.get_ids(config, email)
 
         for user in ids:
             if not user['id']:
@@ -114,8 +117,8 @@ async def checkupdates(client, config):
         confirmed.append(data['id'])
 
     async def delgroup(data):
-        login = data['login']
-        ids = api.get_ids(config, login)
+        email = data['email']
+        ids = api.get_ids(config, email)
 
         for user in ids:
             if not user['id']:
@@ -131,12 +134,18 @@ async def checkupdates(client, config):
                         await utils.__del_roles(m, role)
         confirmed.append(data['id'])
 
+    async def updateconfig(data):
+        guild_id = data['server']
+        await api.update_conf(client, config, guild_id)
+        confirmed.append(data['id'])
+
     handelers = {
         'certify': certify,
         'ban': ban,
         'unban': unban,
         'addgroup': addgroup,
         'delgroup': delgroup,
+        'config': updateconfig,
     }
 
     for update in data:
@@ -157,5 +166,6 @@ async def hooksthread(client, config):
             await checkupdates(client, config)
         except Exception as e:
             print(e)
+            raise e
 
         await asyncio.sleep(10) # todo: pass this as a parameter

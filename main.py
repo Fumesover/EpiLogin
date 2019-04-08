@@ -11,6 +11,7 @@ import utils
 import admin
 import hooks
 import api
+import logs
 
 logging.basicConfig(level=logging.INFO)
 
@@ -19,9 +20,11 @@ config = None
 
 @Bot.event
 async def on_ready():
+    await logs.on_ready(Bot, config)
+    await api.update_conf_all(Bot, config)
     for guild in Bot.guilds:
-        api.on_guild_join(config, guild.id)
-    api.update_conf_all(config)
+        if not guild.id in config['servers']:
+            api.on_guild_join(config, guild.id)
 
 @Bot.event
 async def on_message(message):

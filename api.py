@@ -3,9 +3,11 @@ import json
 import requests
 from requests.auth import HTTPBasicAuth
 
+import logs
+
 BAN_TYPES = (
     ('group', 'GROUP'),
-    ('login', 'LOGIN'),
+    ('email', 'EMAIL'),
     ('user', 'USER'),
 )
 
@@ -47,16 +49,16 @@ def create_member(config, discord_id):
     else:
         return None
 
-def get_ids(config, login):
-    url = "{}/api/members/?login={}".format(config['website']['url'], login)
+def get_ids(config, email):
+    url = "{}/api/members/?login={}".format(config['website']['url'], email)
     return fetch_paginate(url)
 
-def get_groups(config, login='', group=''):
-    url = "{}/api/groups/?login={}&group={}".format(config['website']['url'], login, group)
+def get_groups(config, email='', group=''):
+    url = "{}/api/groups/?email={}&group={}".format(config['website']['url'], email, group)
     return fetch_paginate(url)
 
-def get_bans(config, server, login='', group=''):
-    url = "{}/api/bans/?server={}&type={}&value={}".format(server, login, group)
+def get_bans(config, server, email='', group=''):
+    url = "{}/api/bans/?server={}&type={}&value={}".format(server, email, group)
     return fetch_paginate(url)
 
 def get_updates(config):
@@ -72,12 +74,17 @@ def __format_bans(server):
     ban_set = server.pop('ban_set')
     server['bans'] = {
         'group': [],
-        'login': [],
+        'email': [],
         'user':  [],
     }
 
     for ban in ban_set:
         server['bans'][ban['type']].append(ban['value'])
+
+def __format_emails_domains(server):
+    emails_domains = server.pop('emails_domains')
+    server['domains'] = [e['domain'] for e in emails_domains]
+    print(server['domains'])
 
 def __format_ranks(server):
     rank_set = server.pop('rank_set')
@@ -99,7 +106,7 @@ def __format_ranks(server):
         else:
             server['ranks'][type].append(discord_id)
 
-def update_conf_all(config):
+async def update_conf_all(client, config):
     url = '{}/api/servers/'.format(config['website']['url'])
     data = fetch_paginate(url)
 
@@ -114,14 +121,15 @@ def update_conf_all(config):
 
         __format_ranks(server)
         __format_bans(server)
+        __format_emails_domains(server)
 
     config['servers'] = new
 
-    # print(json.dumps(config, indent=4))
+    await logs.config_loaded(client, config)
 
     return True
 
-def update_conf(config, server_id):
+async def update_conf(client, config, server_id):
     url = '{}/api/servers/{}/'.format(config['website']['url'], server_id)
     r = requests.get(url)
 
@@ -131,9 +139,8 @@ def update_conf(config, server_id):
     server = r.json()
     __format_ranks(server)
     __format_bans(server)
+    __format_emails_domains(server)
     config['servers'][server_id] = server
-
-    # print(json.dumps(server, indent=4))
 
     return True
 
