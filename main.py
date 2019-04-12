@@ -25,6 +25,7 @@ async def on_ready():
     for guild in Bot.guilds:
         if not 'servers' in config or not guild.id in config['servers']:
             api.on_guild_join(config, guild.id)
+        api.update_guild(config, guild)
 
 @Bot.event
 async def on_message(message):

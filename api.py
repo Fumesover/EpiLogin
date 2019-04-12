@@ -155,3 +155,7 @@ def on_member_join(config, guild_id, member_id):
 def on_guild_join(config, guild_id):
     url = "{}/api/servers/".format(config['website']['url'])
     r = requests.post(url, {'id': guild_id})
+
+def update_guild(config, guild):
+    url = "{}/api/servers/{}/".format(config['website']['url'], guild.id)
+    r = requests.put(url, {'id': guild.id, 'name': guild.name, 'icon_url': guild.icon})

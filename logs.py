@@ -75,7 +75,7 @@ async def set_roles(client, config, member, added, removed):
     await channel.send(member.guild.name + ' : ' + member.mention + message)
 
 async def reject_dm(client, member, config):
-    msg = "{} does not accept DM" #.format(member.mention)
+    msg = "{} does not accept DM"
 
     l = get_logger('discord.epilogin.reject_dm')
     l.info(str(member.guild.id) + ':' + msg.format(member.id))
