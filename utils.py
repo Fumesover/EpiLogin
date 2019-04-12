@@ -68,8 +68,7 @@ async def send_hello(client, member, hash, config):
         await channel.send(message)
 
     except Exception:
-        print('TODO: send_hello: add logs here')
-        pass
+        await logs.reject_dm(client, member, config)
 
 async def on_certify(client, config, member, email):
     config_ranks = config['servers'][member.guild.id]['ranks']

@@ -52,16 +52,36 @@ async def new_user(client, member, config):
     await channel.send(member.guild.name + ' : new user (waiting for confirmation) : ' + member.mention)
 
 async def set_roles(client, config, member, added, removed):
-    l = get_logger('discord.epilogin.set_roles')
-    l.info(str(member.id) + ' adding ' + str(added) + ' & removing' + str(removed))
-
     n_added   = ' '.join([r.name for r in added])
-    m_added   = ' '.join([r.mention for r in added])
     n_removed = ' '.join([r.name for r in removed])
-    m_removed = ' '.join([r.mention for r in removed])
-    
+
+    message = ''
+    if added:
+        message += " adding {}".format(n_added)
+        if removed:
+            message += " and"
+    if removed:
+        message += " removing {}".format(n_removed)
+    if not added and not removed:
+        message = " no roles to set"
+
+    l = get_logger('discord.epilogin.set_roles')
+    l.info(str(member.id) + message)
+
     channel = get_channel(client, config['servers'][member.guild.id]['channel_logs'])
-    await channel.send(member.mention + ' adding [' + m_added + '] and removing [' + m_removed + ']')
+    await channel.send(member.mention + message)
 
     channel = get_channel(client, config['bot']['logs'])
-    await channel.send(member.guild.name + ' : ' + member.mention + ' adding [' + n_added + '] and removing [' + n_removed + ']')
+    await channel.send(member.guild.name + ' : ' + member.mention + message)
+
+async def reject_dm(client, member, config):
+    msg = "{} does not accept DM" #.format(member.mention)
+
+    l = get_logger('discord.epilogin.reject_dm')
+    l.info(str(member.guild.id) + ':' + msg.format(member.id))
+
+    channel = get_channel(client, config['servers'][member.guild.id]['channel_logs'])
+    await channel.send(msg.format(member.mention))
+
+    channel = get_channel(client, config['bot']['logs'])
+    await channel.send(member.guild.name + ' : ' + msg.format(member.mention))

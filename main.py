@@ -23,7 +23,7 @@ async def on_ready():
     await logs.on_ready(Bot, config)
     await api.update_conf_all(Bot, config)
     for guild in Bot.guilds:
-        if not guild.id in config['servers']:
+        if not 'servers' in config or not guild.id in config['servers']:
             api.on_guild_join(config, guild.id)
 
 @Bot.event

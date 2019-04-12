@@ -21,7 +21,6 @@ async def checkupdates(client, config):
             if m:
                 await utils.on_certify(client, config, m, user_email)
         confirmed.append(data['id'])
-    #TODO: SEND MESSAGE TO USER
 
     async def ban(data):
         guild_id = data['server']
@@ -166,6 +165,6 @@ async def hooksthread(client, config):
             await checkupdates(client, config)
         except Exception as e:
             print(e)
-            raise e
+            # raise e
 
         await asyncio.sleep(10) # todo: pass this as a parameter

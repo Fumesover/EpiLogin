@@ -50,7 +50,7 @@ def create_member(config, discord_id):
         return None
 
 def get_ids(config, email):
-    url = "{}/api/members/?login={}".format(config['website']['url'], email)
+    url = "{}/api/members/?email={}".format(config['website']['url'], email)
     return fetch_paginate(url)
 
 def get_groups(config, email='', group=''):
@@ -84,7 +84,7 @@ def __format_bans(server):
 def __format_emails_domains(server):
     emails_domains = server.pop('emails_domains')
     server['domains'] = [e['domain'] for e in emails_domains]
-    print(server['domains'])
+#    print(server['domains'])
 
 def __format_ranks(server):
     rank_set = server.pop('rank_set')
