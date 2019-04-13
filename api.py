@@ -168,4 +168,9 @@ def on_guild_join(config, guild_id):
 
 def update_guild(config, guild):
     url = "{}/api/servers/{}/".format(config['website']['url'], guild.id)
-    r = requests.put(url, {'id': guild.id, 'name': guild.name, 'icon_url': guild.icon})
+    r = requests.put(url, {
+        'id': guild.id,
+        'name': guild.name,
+        'icon_url': guild.icon,
+        'is_active': config['servers'][guild.id]['is_active'],
+    })

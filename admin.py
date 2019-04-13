@@ -8,6 +8,11 @@ import api
 
 __re_id_form_tag = re.compile('.*([0-9]{18}).*')
 
+async def is_bot_owner(Bot, member):
+    appinfo = await Bot.application_info()
+    print(member == appinfo.owner)
+    return member == appinfo.owner
+
 async def new_message(Bot, message, config):
     msg = message.content.split(' ')
 
@@ -69,6 +74,7 @@ async def new_message(Bot, message, config):
             await api.update_conf(Bot, config, message.guild.id)
 
     async def logout():
+        await is_bot_owner(Bot, message.author)
         await Bot.logout()
 
     handler = {
