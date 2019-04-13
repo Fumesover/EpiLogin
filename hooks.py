@@ -112,7 +112,9 @@ async def checkupdates(client, config):
 
                     m = guild.get_member(user['id'])
                     if m:
-                        await utils.__add_roles(m, role)
+                        roles = await utils.__add_roles(m, role)
+                        await logs.set_roles(client, config, m, roles, [])
+
         confirmed.append(data['id'])
 
     async def delgroup(data):
@@ -130,7 +132,8 @@ async def checkupdates(client, config):
 
                     m = guild.get_member(user['id'])
                     if m:
-                        await utils.__del_roles(m, role)
+                        roles = await utils.__del_roles(m, role)
+                        await logs.set_roles(client, config, m, [], roles)
         confirmed.append(data['id'])
 
     async def updateconfig(data):

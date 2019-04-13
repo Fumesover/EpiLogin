@@ -62,7 +62,7 @@ async def set_roles(client, config, member, added, removed):
             message += " and"
     if removed:
         message += " removing {}".format(n_removed)
-    if not added and not removed:
+    if not (added or removed):
         message = " no roles to set"
 
     l = get_logger('discord.epilogin.set_roles')

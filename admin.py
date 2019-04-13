@@ -67,6 +67,7 @@ async def new_message(Bot, message, config):
 
     async def syncconf():
         if len(msg) < 2:
+            print(config)
             return
         elif msg[1] == 'all':
             await api.update_conf_all(Bot, config)

@@ -37,6 +37,7 @@ async def on_message(message):
     guild_id = message.guild.id
 
     if (not guild_id in config['servers']) or not config['servers'][guild_id]['is_active']:
+        print('nope')
         return
 
     if message.channel.id == config['servers'][guild_id]['channel_admin']:
@@ -50,15 +51,12 @@ async def on_member_join(member):
 
 @Bot.event
 async def on_member_remove(member):
-    await api.on_member_remove(config, member.guild.id, member.id)
+    api.on_member_remove(config, member.guild.id, member.id)
 
 @Bot.event
 async def on_guild_join(guild):
-    await api.on_guild_join(config, guild.id)
-
-@Bot.event
-async def on_member_remove(member):
-    api.on_member_remove(config, member.id)
+    api.on_guild_join(config, guild.id)
+    api.update_guild(config, guild)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Discord bot for EPITA')

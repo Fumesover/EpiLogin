@@ -157,7 +157,7 @@ async def update_conf(client, config, server_id):
 
 def on_member_remove(config, guild_id, member_id):
     url = "{}/api/members/{}/server/".format(config['website']['url'], member_id)
-    r = requests.delete(url, {'id': guild_id})
+    r = requests.delete(url, data={'id': guild_id})
 
 def on_member_join(config, guild_id, member_id):
     url = "{}/api/members/{}/server/".format(config['website']['url'], member_id)
