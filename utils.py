@@ -77,13 +77,9 @@ async def on_certify(client, config, member, email):
     user_groups = user_groups if user_groups else []
 
     ranks = []
-    print(0, config_ranks['classic'])
-    print(1, ranks)
-    print(1.1, user_groups)
     for group in user_groups:
         if group['group'] in config_ranks['classic']:
             ranks += config_ranks['classic'][group['group']]
-            print(2, ranks)
 
     if not email.split('@')[1] in config['servers'][member.guild.id]['domains']:
         ranks = config_ranks['banned']
@@ -91,8 +87,6 @@ async def on_certify(client, config, member, email):
         ranks = config_ranks['banned']
     else:
         ranks += config_ranks['confirmed']
-
-    print(ranks)
 
     await set_roles(client, config, member, ranks)
 
@@ -104,6 +98,8 @@ async def on_member_join(client, member, config, create_if_unk=True):
         if not create_if_unk:
             return
         user = api.create_member(config, member)
+    else:
+        api.update_username(config, member)
 
     email = user['email']
 

@@ -45,6 +45,7 @@ def create_member(config, member):
     r = requests.post(url, {
         'id': member.id,
         'name': str(member),
+        'icon_url': member.avatar,
     })
 
     if r.status_code == 201:
@@ -53,10 +54,11 @@ def create_member(config, member):
         return None
 
 def update_username(config, member):
-    url = "{}/api/members/{}/".format(config['website']['url'])
-    r = requests.put(url, {
+    url = "{}/api/members/{}/".format(config['website']['url'], member.id)
+    r = requests.patch(url, {
         'id': member.id,
         'name': str(member),
+        'icon_url': member.avatar,
     })
 
 def get_ids(config, email):
@@ -94,7 +96,6 @@ def __format_bans(server):
 def __format_emails_domains(server):
     emails_domains = server.pop('emails_domains')
     server['domains'] = [e['domain'] for e in emails_domains]
-#    print(server['domains'])
 
 def __format_ranks(server):
     rank_set = server.pop('rank_set')
@@ -168,7 +169,7 @@ def on_guild_join(config, guild_id):
 
 def update_guild(config, guild):
     url = "{}/api/servers/{}/".format(config['website']['url'], guild.id)
-    r = requests.put(url, {
+    r = requests.patch(url, {
         'id': guild.id,
         'name': guild.name,
         'icon_url': guild.icon,

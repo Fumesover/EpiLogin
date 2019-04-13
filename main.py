@@ -50,6 +50,14 @@ async def on_member_join(member):
 
 @Bot.event
 async def on_member_remove(member):
+    await api.on_member_remove(config, member.guild.id, member.id)
+
+@Bot.event
+async def on_guild_join(guild):
+    await api.on_guild_join(config, guild.id)
+
+@Bot.event
+async def on_member_remove(member):
     api.on_member_remove(config, member.id)
 
 if __name__ == "__main__":
