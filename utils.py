@@ -103,7 +103,7 @@ async def on_member_join(client, member, config, create_if_unk=True):
     if not user:
         if not create_if_unk:
             return
-        user = api.create_member(config, member.id)
+        user = api.create_member(config, member)
 
     email = user['email']
 

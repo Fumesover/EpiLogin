@@ -40,14 +40,24 @@ def get_member(config, discord_id):
     else:
         return None
 
-def create_member(config, discord_id):
+def create_member(config, member):
     url = "{}/api/members/".format(config['website']['url'])
-    r = requests.post(url, {'id': discord_id})
+    r = requests.post(url, {
+        'id': member.id,
+        'name': str(member),
+    })
 
     if r.status_code == 201:
         return r.json()
     else:
         return None
+
+def update_username(config, member):
+    url = "{}/api/members/{}/".format(config['website']['url'])
+    r = requests.put(url, {
+        'id': member.id,
+        'name': str(member),
+    })
 
 def get_ids(config, email):
     url = "{}/api/members/?email={}".format(config['website']['url'], email)
