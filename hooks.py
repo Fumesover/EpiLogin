@@ -22,6 +22,9 @@ async def checkupdates(client, config):
                 await utils.on_certify(client, config, m, user_email)
         confirmed.append(data['id'])
 
+        if data['author'] != user_id:
+            await logs.certify(client, config, user_id, user_email, data['author'])
+
     async def ban(data):
         guild_id = data['server']
         guild = client.get_guild(guild_id)
@@ -57,6 +60,7 @@ async def checkupdates(client, config):
 
         if data['ban_type'] in handler:
             await handler[data['ban_type']](data)
+            await logs.ban(client, config, data['author'], guild, data['ban_type'], data['value'])
 
         confirmed.append(data['id'])
 
@@ -94,6 +98,7 @@ async def checkupdates(client, config):
 
         if data['ban_type'] in handler:
             await handler[data['ban_type']](data)
+            await logs.ban(client, config, data['author'], guild, data['ban_type'], data['value'], unban=True)
 
         confirmed.append(data['id'])
 
@@ -139,34 +144,40 @@ async def checkupdates(client, config):
     async def updateconfig(data):
         value = data['value'].split('-')
 
-        print(data)
         async def channels_update(data):
             await api.update_conf(client, config, data['server'])
-            print(data['author'], 'updated the configuration of', data['server'], ', new config is: ...')
+            await logs.on_channels_update(client, config, data['server'], data['author'])
         async def deldomain(data):
             config['servers'][data['server']]['domains'].remove(data['email'])
-            print(data['author'], 'removed a domain in the whitelist of', data['server'])
-            print('whitelisted domains :', config['servers'][data['server']]['domains'])
+            await logs.on_del_domain(client, config, data['server'], data['author'], data['email'])
         async def adddomain(data):
             config['servers'][data['server']]['domains'].append(data['ban_type'])
-            print(data['author'], 'added a domain in the whitelist of', data['server'])
-            print('whitelisted domains :', config['servers'][data['server']]['domains'])
+            await logs.on_add_domain(client, config, data['server'], data['author'], data['ban_type'])
         async def activate(data):
             config['servers'][data['server']]['is_active'] = True
-            print(data['author'], 'activated the server', data['server'])
+            await logs.on_guild_activate(client, config, data['server'], data['author'])
         async def deactivate(data):
             config['servers'][data['server']]['is_active'] = False
-            print(data['author'], 'deactivated the server', data['server'])
+            await logs.on_guild_deactivate(client, config, data['server'], data['author'])
         async def delrank(data):
             async def delconfirmed():
                 config['servers'][data['server']]['ranks']['confirmed'].remove(int(data['email']))
-                print(data['author'], 'removed confirmed rank', data['email'])
+                await logs.on_update_rank(
+                        client, config, data['server'], data['author'],
+                        "removed <@&{}> for confirmed".format(int(data['email']))
+                )
             async def delbanned():
                 config['servers'][data['server']]['ranks']['banned'].remove(int(data['email']))
-                print(data['author'], 'removed banned rank', data['email'])
+                await logs.on_update_rank(
+                        client, config, data['server'], data['author'],
+                        "removed <@&{}> for banned".format(int(data['email']))
+                )
             async def delclassic():
                 config['servers'][data['server']]['ranks']['classic'][data['ban_type']].remove(int(data['email']))
-                print(data['author'], 'removed classic rank', data['email'])
+                await logs.on_update_rank(
+                        client, config, data['server'], data['author'],
+                        "removed <@&{}> for {}".format(int(data['email']), data['ban_type'])
+                )
 
             handelers = {
                 'confirmed': delconfirmed,
@@ -175,24 +186,29 @@ async def checkupdates(client, config):
             }
 
             if value[1] in handelers:
-                print('Old config:', config['servers'][data['server']])
                 await handelers[value[1]]()
                 confirmed.append(data['id'])
-                print('New config:', config['servers'][data['server']])
-            else:
-                print('wtf ?', data)
         async def addrank(data):
             async def addconfirmed():
                 config['servers'][data['server']]['ranks']['confirmed'].append(int(data['email']))
-                print(data['author'], 'added confirmed rank', data['email'])
+                await logs.on_update_rank(
+                        client, config, data['server'], data['author'],
+                        "added <@&{}> for confirmed".format(int(data['email']))
+                )
             async def addbanned():
                 config['servers'][data['server']]['ranks']['banned'].append(int(data['email']))
-                print(data['author'], 'added banned rank', data['email'])
+                await logs.on_update_rank(
+                        client, config, data['server'], data['author'],
+                        "added <@&{}> for banned".format(int(data['email']))
+                )
             async def addclassic():
                 if not data['ban_type'] in config['servers'][data['server']]['ranks']['classic']:
                     config['servers'][data['server']]['ranks']['classic'][data['ban_type']] = []
                 config['servers'][data['server']]['ranks']['classic'][data['ban_type']].append(int(data['email']))
-                print(data['author'], 'added classic rank', data['email'])
+                await logs.on_update_rank(
+                        client, config, data['server'], data['author'],
+                        "added <@&{}> for {}".format(int(data['email']), data['ban_type'])
+                )
 
             handelers = {
                 'confirmed': addconfirmed,
@@ -201,12 +217,8 @@ async def checkupdates(client, config):
             }
 
             if value[1] in handelers:
-                print('Old config:', config['servers'][data['server']])
                 await handelers[value[1]]()
                 confirmed.append(data['id'])
-                print('New config:', config['servers'][data['server']])
-            else:
-                print('wtf ?', data)
 
         handelers = {
             'channels': channels_update,
@@ -219,11 +231,8 @@ async def checkupdates(client, config):
         }
 
         if value[0] in handelers:
-            print(value[0])
             await handelers[value[0]](data)
             confirmed.append(data['id'])
-        else:
-            print('Unknown : ', data)
 
     handelers = {
         'certify': certify,
@@ -235,7 +244,6 @@ async def checkupdates(client, config):
     }
 
     for update in data:
-        print(update)
         if 'type' in update and update['type'] in handelers:
             await handelers[update['type']](update)
 

@@ -85,3 +85,111 @@ async def reject_dm(client, member, config):
 
     channel = get_channel(client, config['bot']['logs'])
     await channel.send(member.guild.name + ' : ' + msg.format(member.mention))
+
+async def on_guild_join(client, config, guild):
+    msg = "I just joinded {} ! You need to activate it on {}/servers/{}".format(guild.name, config['website']['url'], guild.id)
+
+    l = get_logger('discord.epilogin.on_guild_join')
+    l.info(msg)
+
+    channel = get_channel(client, config['bot']['logs'])
+    await channel.send(msg)
+
+async def on_guild_activate(client, config, guild_id, author):
+    guild = client.get_guild(guild_id)
+    msg = "<@{}> just activated {} ({}).".format(author, guild.name, guild_id)
+
+    l = get_logger('discord.epilogin.on_guild_activate')
+    l.info(msg)
+
+    channel = get_channel(client, config['bot']['logs'])
+    await channel.send(msg)
+
+async def on_guild_deactivate(client, config, guild_id, author):
+    guild = client.get_guild(guild_id)
+    msg = "<@{}> just deactivate {} ({}).".format(author, guild.name, guild_id)
+
+    l = get_logger('discord.epilogin.on_guild_deactivate')
+    l.info(msg)
+
+    channel = get_channel(client, config['bot']['logs'])
+    await channel.send(msg)
+
+async def on_add_domain(client, config, guild_id, author, domain):
+    guild = client.get_guild(guild_id)
+    msg = "<@{}> just added @{} to whitelist.".format(author, domain)
+
+    l = get_logger('discord.epilogin.on_add_domain')
+    l.info("{}: {}".format(guild.id, msg))
+
+    channel = get_channel(client, config['bot']['logs'])
+    await channel.send("{}: {}".format(guild.name, msg))
+
+    channel = get_channel(client, config['servers'][guild_id]['channel_logs'])
+    await channel.send(msg)
+
+async def on_del_domain(client, config, guild_id, author, domain):
+    guild = client.get_guild(guild_id)
+    msg = "<@{}> just removed @{} from whitelist.".format(author, domain)
+
+    l = get_logger('discord.epilogin.on_del_domain')
+    l.info("{}: {}".format(guild.id, msg))
+
+    channel = get_channel(client, config['bot']['logs'])
+    await channel.send("{}: {}".format(guild.name, msg))
+
+    channel = get_channel(client, config['servers'][guild_id]['channel_logs'])
+    await channel.send(msg)
+
+async def on_channels_update(client, config, guild_id, author):
+    guild = client.get_guild(guild_id)
+    conf = config['servers'][guild_id]
+    msg = (
+            "<@{}> updated the configuration:\n"
+            "\tLogs: <#{}>\n"
+            "\tAdmin: <#{}>\n"
+            "\tRequest: <#{}>"
+          ).format(author, conf['channel_logs'], conf['channel_admin'], conf['channel_request'])
+
+    l = get_logger('discord.epilogin.on_del_domain')
+    l.info("{}: {}".format(guild.id, msg))
+
+    channel = get_channel(client, config['bot']['logs'])
+    await channel.send("{}: {}".format(guild.name, msg))
+
+    channel = get_channel(client, config['servers'][guild_id]['channel_logs'])
+    await channel.send(msg)
+
+async def on_update_rank(client, config, guild_id, author, msg):
+    guild = client.get_guild(guild_id)
+    msg = "<@{}> {}".format(author, msg)
+
+    l = get_logger('discord.epilogin.on_update_rank')
+    l.info("{}: {}".format(guild.id, msg))
+
+    channel = get_channel(client, config['bot']['logs'])
+    await channel.send("{}: {}".format(guild.name, msg))
+
+    channel = get_channel(client, config['servers'][guild_id]['channel_logs'])
+    await channel.send(msg)
+
+async def certify(client, config, user_id, email, author):
+    msg = "<@{}> manualy certified that <@{}> is {}".format(author, user_id, email)
+
+    l = get_logger('discord.epilogin.certify')
+    l.info(msg)
+
+    channel = get_channel(client, config['bot']['logs'])
+    await channel.send(msg)
+
+async def ban(client, config, author, guild, type, victim, unban=False):
+    msg = "<@{}> {}banned {} {}".format(author, 'un' if unban else '', type, victim if type != 'user' else '<@{}>'.format(victim))
+
+    l = get_logger('discord.epilogin.ban')
+    l.info("{}: {}".format(guild.id, msg))
+
+    channel = get_channel(client, config['bot']['logs'])
+    await channel.send("{}: {}".format(guild.name, msg))
+
+    channel = get_channel(client, config['servers'][guild.id]['channel_logs'])
+    await channel.send(msg)

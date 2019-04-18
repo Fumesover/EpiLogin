@@ -57,6 +57,7 @@ async def on_member_remove(member):
 async def on_guild_join(guild):
     api.on_guild_join(config, guild.id)
     api.update_guild(config, guild)
+    await logs.on_guild_join(client, config, guild)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Discord bot for EPITA')
