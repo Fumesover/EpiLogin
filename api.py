@@ -173,5 +173,4 @@ def update_guild(config, guild):
         'id': guild.id,
         'name': guild.name,
         'icon_url': guild.icon,
-        'is_active': config['servers'][guild.id]['is_active'],
     })

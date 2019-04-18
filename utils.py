@@ -92,7 +92,6 @@ async def on_certify(client, config, member, email):
 
 async def on_member_join(client, member, config, create_if_unk=True):
     user = api.get_member(config, member.id)
-    api.on_member_join(config, member.guild.id, member.id)
 
     if not user:
         if not create_if_unk:
@@ -101,6 +100,7 @@ async def on_member_join(client, member, config, create_if_unk=True):
     else:
         api.update_username(config, member)
 
+    api.on_member_join(config, member.guild.id, member.id)
     email = user['email']
 
     if not email:
