@@ -105,6 +105,7 @@ async def checkupdates(client, config):
     async def addgroup(data):
         email = data['email']
         ids = api.get_ids(config, email)
+        guilds_ids = []
 
         for user in ids:
             if not user['id']:
@@ -119,12 +120,18 @@ async def checkupdates(client, config):
                     if m:
                         roles = await utils.__add_roles(m, role)
                         await logs.set_roles(client, config, m, roles, [])
+                        guilds_ids.append(guild.id)
 
         confirmed.append(data['id'])
+        await logs.on_update_role(
+                client, config, guilds_ids, data['author'],
+                "added {} to {}".format(data['value'], email)
+        )
 
     async def delgroup(data):
         email = data['email']
         ids = api.get_ids(config, email)
+        guilds_ids = []
 
         for user in ids:
             if not user['id']:
@@ -139,7 +146,13 @@ async def checkupdates(client, config):
                     if m:
                         roles = await utils.__del_roles(m, role)
                         await logs.set_roles(client, config, m, [], roles)
+                        guilds_ids.append(guild.id)
+
         confirmed.append(data['id'])
+        await logs.on_update_role(
+                client, config, guilds_ids, data['author'],
+                "removed {} to {}".format(data['value'], email)
+        )
 
     async def updateconfig(data):
         value = data['value'].split('-')

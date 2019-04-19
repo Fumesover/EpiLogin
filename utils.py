@@ -101,6 +101,8 @@ async def on_member_join(client, member, config, create_if_unk=True):
     email = user['email']
 
     if not email:
+        if not create_if_unk:
+            return
         await logs.new_user(client, member, config)
         await send_hello(client, member, user['hash'], config)
     else:

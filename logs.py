@@ -173,6 +173,19 @@ async def on_update_rank(client, config, guild_id, author, msg):
     channel = get_channel(client, config['servers'][guild_id]['channel_logs'])
     await channel.send(msg)
 
+async def on_update_role(client, config, guilds_ids, author, msg):
+    msg = "<@{}> {}".format(author, msg)
+
+    l = get_logger('discord.epilogin.on_update_rank')
+    l.info("{}".format(msg))
+
+    channel = get_channel(client, config['bot']['logs'])
+    await channel.send(msg)
+
+    for guild_id in guilds_ids:
+        channel = get_channel(client, config['servers'][guild_id]['channel_logs'])
+        await channel.send(msg)
+
 async def certify(client, config, user_id, email, author):
     msg = "<@{}> manualy certified that <@{}> is {}".format(author, user_id, email)
 
