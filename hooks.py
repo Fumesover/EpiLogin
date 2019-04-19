@@ -260,7 +260,6 @@ async def hooksthread(client, config):
         try:
             await checkupdates(client, config)
         except Exception as e:
-            print(e)
-            # raise e
+            await logs.error(client, config, e)
 
         await asyncio.sleep(config['website']['time'])

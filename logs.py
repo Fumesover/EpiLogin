@@ -193,3 +193,10 @@ async def ban(client, config, author, guild, type, victim, unban=False):
 
     channel = get_channel(client, config['servers'][guild.id]['channel_logs'])
     await channel.send(msg)
+
+async def error(client, config, e):
+    l = get_logger('discord.error')
+    l.info('error: ' + str(e))
+
+    channel = get_channel(client, config['bot']['logs'])
+    await channel.send('error: ' + str(e))
