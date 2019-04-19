@@ -67,12 +67,12 @@ async def new_message(Bot, message, config):
 
     async def syncconf():
         if len(msg) < 2:
-            print(config)
             return
         elif msg[1] == 'all':
             await api.update_conf_all(Bot, config)
         elif msg[1] == 'this':
             await api.update_conf(Bot, config, message.guild.id)
+        await message.channel.send('Config updated')
 
     async def logout():
         await is_bot_owner(Bot, message.author)
@@ -90,5 +90,4 @@ async def new_message(Bot, message, config):
 
     if msg[0] in handler:
         await logs.admin_command(Bot, config, message)
-
         await handler[msg[0]]()

@@ -11,14 +11,15 @@ BAN_TYPES = (
     ('user', 'USER'),
 )
 
-# TODO: AUTH TOKEN (Authorization: Token 7dd94922cbc44ac9745a2203cec34233dcc7592d)
+def get_headers(config):
+    return {'Authorization': 'Token ' + config['website']['token']}
 
 # get all parameters if the api is in multi pages
-def fetch_paginate(next):
+def fetch_paginate(config, next):
     output = []
 
     while next:
-        r = requests.get(next)
+        r = requests.get(next, headers=get_headers(config))
 
         if r.status_code != 200:
             print('Request failed,', next, r.status_code)
@@ -33,7 +34,7 @@ def fetch_paginate(next):
 
 def get_member(config, discord_id):
     url = "{}/api/members/{}/".format(config['website']['url'], discord_id)
-    r = requests.get(url)
+    r = requests.get(url, headers=get_headers(config))
 
     if r.status_code == 200:
         return r.json()
@@ -46,7 +47,7 @@ def create_member(config, member):
         'id': member.id,
         'name': str(member),
         'icon_url': member.avatar,
-    })
+    }, headers=get_headers(config))
 
     if r.status_code == 201:
         return r.json()
@@ -59,28 +60,28 @@ def update_username(config, member):
         'id': member.id,
         'name': str(member),
         'icon_url': member.avatar,
-    })
+    }, headers=get_headers(config))
 
 def get_ids(config, email):
     url = "{}/api/members/?email={}".format(config['website']['url'], email)
-    return fetch_paginate(url)
+    return fetch_paginate(config, url)
 
 def get_groups(config, email='', group=''):
     url = "{}/api/groups/?email={}&group={}".format(config['website']['url'], email, group)
-    return fetch_paginate(url)
+    return fetch_paginate(config, url)
 
 def get_bans(config, server, email='', group=''):
     url = "{}/api/bans/?server={}&type={}&value={}".format(server, email, group)
-    return fetch_paginate(url)
+    return fetch_paginate(config, url)
 
 def get_updates(config):
     url = "{}/api/updates/".format(config['website']['url'])
-    return fetch_paginate(url)
+    return fetch_paginate(config, url)
 
 def del_updates(config, ids):
     for id in ids:
         url = "{}/api/updates/{}/".format(config['website']['url'], id)
-        r = requests.delete(url)
+        r = requests.delete(url, headers=get_headers(config))
 
 def __format_bans(server):
     ban_set = server.pop('ban_set')
@@ -119,7 +120,7 @@ def __format_ranks(server):
 
 async def update_conf_all(client, config):
     url = '{}/api/servers/'.format(config['website']['url'])
-    data = fetch_paginate(url)
+    data = fetch_paginate(config, url)
 
     if not data:
         return False
@@ -142,7 +143,7 @@ async def update_conf_all(client, config):
 
 async def update_conf(client, config, server_id):
     url = '{}/api/servers/{}/'.format(config['website']['url'], server_id)
-    r = requests.get(url)
+    r = requests.get(url, headers=get_headers(config))
 
     if r.status_code != 200:
         return False
@@ -157,15 +158,15 @@ async def update_conf(client, config, server_id):
 
 def on_member_remove(config, guild_id, member_id):
     url = "{}/api/members/{}/server/".format(config['website']['url'], member_id)
-    r = requests.delete(url, data={'id': guild_id})
+    r = requests.delete(url, data={'id': guild_id}, headers=get_headers(config))
 
 def on_member_join(config, guild_id, member_id):
     url = "{}/api/members/{}/server/".format(config['website']['url'], member_id)
-    r = requests.post(url, {'id': guild_id})
+    r = requests.post(url, {'id': guild_id}, headers=get_headers(config))
 
 def on_guild_join(config, guild_id):
     url = "{}/api/servers/".format(config['website']['url'])
-    r = requests.post(url, {'id': guild_id})
+    r = requests.post(url, {'id': guild_id}, headers=get_headers(config))
 
 def update_guild(config, guild):
     url = "{}/api/servers/{}/".format(config['website']['url'], guild.id)
@@ -173,4 +174,4 @@ def update_guild(config, guild):
         'id': guild.id,
         'name': guild.name,
         'icon_url': guild.icon,
-    })
+    }, headers=get_headers(config))

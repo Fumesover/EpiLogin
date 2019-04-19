@@ -7,10 +7,9 @@ bot:
             Tu es inconnu de nos services,
             Pour rejoindre $server, je t'invite a cliquer sur le lien
             suivant.
-    logs: "root channel with logs of all servers"
-database:
-    url: postgres://postgres@localhost/postgres
+    logs: 1231231231321321312313
 website:
     enable: True
     url:    http://127.0.0.1:8000
-    token:  123456
+    token:  xxxxxxxxxxxxxxxxxxxxx
+    time:   10

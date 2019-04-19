@@ -14,7 +14,6 @@ async def __del_roles(member, roles):
             if r:
                 to_remove.append(r)
 
-# TODO: handle errors (cf https://discordpy.readthedocs.io/en/rewrite/api.html#discord.Member.add_roles)
         await member.remove_roles(*to_remove)
     return to_remove
 
@@ -27,7 +26,6 @@ async def __add_roles(member, roles):
             if r:
                 new_roles.append(r)
 
-# TODO: handle errors (cf https://discordpy.readthedocs.io/en/rewrite/api.html#discord.Member.add_roles)
         await member.add_roles(*new_roles)
     return new_roles
 
@@ -50,7 +48,6 @@ async def set_roles(client, config, member, to_set):
     removed = await __del_roles(member, to_remove)
     added =   await __add_roles(member, to_add)
     await logs.set_roles(client, config, member, added, removed)
-
 
 async def send_hello(client, member, hash, config):
     try:

@@ -263,4 +263,4 @@ async def hooksthread(client, config):
             print(e)
             # raise e
 
-        await asyncio.sleep(10) # todo: pass this as a parameter
+        await asyncio.sleep(config['website']['time'])
