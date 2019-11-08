@@ -262,7 +262,7 @@ async def checkupdates(client, config):
                 await handelers[update['type']](update)
             except Exception as e:
                 await logs.error(client, config, e)
-                confirmed.append(data['id'])
+                confirmed.append(update['id'])
 
     if confirmed:
         r = api.del_updates(config, confirmed)
