@@ -14,7 +14,7 @@ async def is_bot_owner(Bot, member):
     return member == appinfo.owner
 
 async def new_message(Bot, message, config):
-    msg = message.content.split(' ')
+    msg = message.content.split()
 
     async def help():
         msg = (
@@ -47,7 +47,7 @@ async def new_message(Bot, message, config):
     async def get():
         ids = []
 
-        for el in message.content.split(' ')[1:]:
+        for el in message.content.split()[1:]:
             req = __re_id_form_tag.match(el)
             if req:
                 ids.append((True, el, req.group(1)))
