@@ -258,7 +258,11 @@ async def checkupdates(client, config):
 
     for update in data:
         if 'type' in update and update['type'] in handelers:
-            await handelers[update['type']](update)
+            try:
+                await handelers[update['type']](update)
+            except Exception as e:
+                await logs.error(client, config, e)
+                confirmed.append(data['id'])
 
     if confirmed:
         r = api.del_updates(config, confirmed)
